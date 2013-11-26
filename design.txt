@@ -1,0 +1,110 @@
+The goal
+	To reach a certain amount of earnings?
+	To complete the "story"?
+	To hire a certain number of employees?
+
+The game will run in "real time" with time management an essential part of success.
+You can set the speed of the game time to fast forward through moments where nothing is happening.
+
+As years pass cars change and you need to upgrade your tools / equipment
+
+Possible skills to upgrade:
+	
+	Reading people
+		Used for determining customer gullability / level of knowledge and skill / trustworthiness of potential hires
+	
+	Repairs - Increases the efficieny and quality of repairs
+		Small engine
+		Large engine
+		Body work
+		Detailing
+		Maintenance 
+			Oil change / steering / muffler / brakes
+	
+	Business savvy
+		Determines your borrowing rate			
+		Lower prices on parts that you buy
+		Increases the amount you can charge customers without them getting upset.
+		Increases the rate that nwe customers appear (offsets the negative affects of angry customers)
+		Lowers the amount you can pay an employee
+
+When customer comes in you will be shown a screen where you are given a report on how much they know about cars / how gullible they are.
+The accuracy of the report will be based on your skill of reading people. The more gullible they are, the more you can safely charge them for your efforts and can safely come up with
+new things to charge them for.
+
+A customer might come in asking for a specific thing, or might just have a problem they don't know what's wrong. 
+i.e. do you do oil changes?
+Depending on the equipment you won you might be able to help them or you might not...
+You can choose to lie and say yes and then.... ?!
+
+The customer might only be able to tell the symptoms or they might tell you specifically what is wrong... just because they tell you what is wrong doesn't mean they know... they could just 
+think they know too much... in that case you can pretend that what they said was wrong was wrong, or you can be honest... or you can fix what they thought was wrong and what was actually wrong
+... it all depends on what you think you can get away with (and how you want to behave)
+
+Once the car is in the garage you hook it up to a diagnostic computer which tells what is potentially wrong with the computerized components.
+
+You need to upgrade your repair skills in order to repair things more effectively / more quickly.
+
+You can buy better tools.
+
+The garage has a limited working space and a limited space to park cars. You can updrade to a bigger garage.
+
+The more hours you work in the day the more tired you get. Your level of tiredeness negatively affects all of the areas of the game depending how tired you are.
+
+Once you get too busy you can hire people. This is where your reading people skill also comes in handy because some mechanics are more skilled than others. Some might be alchoholics or steal cash from you. 
+
+Perhaps when interviewing customers and potential mechanics to hire, there will be a dialogue interface a la old school adventure games. The choices depened on your reading people skill and 
+the different choices allow you to find out more or less anbout the person. Once the dialogue is complete you will get a report on your reading of that person.
+
+The person can make choices to help the mafia or the police and depending on the choice the story can go in different directions.
+
+The screen could have an overlay for each different type of repair and the player has to select the right tool and move it in the right way and in the right order to fix the problem.
+
+The player can look through an instruction manual each time they want to make a repair but that takes a long time... the higher your repair skills, the more that the repair happens automatically or
+
+When the process is totally complete with one customer you receive points that you can use to upgrade your skills
+
+There are expenses at the end of every month and you can lose the business if you can't pay your bills / bank loan
+
+Being successfull is a balance between keeping customers happy and over charging them / coming up with new problems.
+If most of your cutsomers are angry you won't get more new customers
+But if most of the customers are happy then you will getmore and more customers
+
+You can accept cash credit or debit. If cash, you can take cash under the table which will not be reported on your earnings. But watch out if the person is an undercover police officer!!!
+
+The game takes place somewhere where there are seasons! In the winter you have to pay to have your area snow plowed or you can do it yourself if you buy a snowplow.
+
+You can offer to buy cars off of people if they are un-repairable / not worth it. Of course you can always lie and try to convince people that their car is unrepairable... then you can negotiate a price with them.
+
+You can do insurance work.
+
+Customers can come back if they are satisfied. It will always be based on the satisfaction of the last work that you do. But, if you keep satisfying customers you could have customers that come back for many
+many years.
+The game will keep a list of customers, when they are sechuled to return, f ever (not shown to player obviously)
+Returning customers will need to have their ages updated.
+
+If you earn enough money you can choose to retire (with different endings depending on the amount of money you have)
+
+The game can end when you reach a certain age if you're still working (you die) (the age of death could vary from game to game but always be between 70 - 80)
+
+The game can end if you go bankrupt.
+
+Customers will have sex, age range, ethnicity. 
+
+When graphics are added, will have some number of faces for each sex, ethniicty and age range
+
+It will be very cool if a customer comes back for 30 years and you see their face change!!
+
+Every day the system will create a new list of customers that will arrive at your shop. The number and frequency of customers will be based on your reputation.
+During the day as you interact with customers this schedule may be altered
+	If you're full you might ask a customer to come back at a later time. If they say yes the customer will be put back into the schedule at the later time. The longer you ask the customer to wait the more likely
+	they are to say no.
+	After you are finished with a customer, the system decides if that customer will come back for another visit. If yes, the customer will be added to the schedule at some later date.
+	
+The system will track all of the past customer visits grouped by customer. This could be used to show various reports (the sky is the limit here!) 
+Players could track how much money they have made from different ages, sexes, ethnicities.
+Players could track how honest / dishnoest they have been with different ages, sexes and ethnicities.	
+
+After doing work, the garage needs to be cleaned. 
+A customers internal willingness to come back as a repeat customer will be influenced by how clean the garage is when they arrive.
+
