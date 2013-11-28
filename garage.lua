@@ -215,7 +215,7 @@ function _M:draw()
 		sy = sy + 20
 		
 		love.graphics.print(c.vehicle.year .. ' ' .. 
-			c.vehicle.type .. ' ' .. 
+			c.vehicle.type.name .. ' ' .. 
 			c.vehicle.kms .. ' kms', 0, sy)	
 
 		sy = sy + 20

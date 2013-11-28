@@ -1,3 +1,5 @@
+local rf = require 'random_frequency'
+
 module('vehicleFactory', package.seeall)
 
 local vehicleAges = {}
@@ -42,52 +44,19 @@ function newVehicle(customer, gt)
 	o.customer = customer
 	
 	-- vehicle age
-	fr = 0
-	for _, va in ipairs(vehicleAges) do
-		fr = fr + va.frequency
-	end		
-	
-	value = math.random(1, fr)	
-	
-	local vehicleAge = nil
-	
-	fr = 0	
-	for _, va in ipairs(vehicleAges) do
-		fr = fr + va.frequency
-		if value <= fr then
-			vehicleAge = va
-			break
-		end
-	end
-	
+	local vehicleAge = rf.getItem(vehicleAges)
+
 	value = math.random(vehicleAge.range[1], vehicleAge.range[2])
-	o.year = gameDate.year - value	
-	
-	-- mileage
 	local age = value
-	value = math.random(100, 15000)
+	local year = gameDate.year - age	
+	o.year = year
+	
+	-- mileage	
+	value = math.random(1000, 15000)
 	o.kms = (age + 1) * value
 	
-	-- vehicle type
-	fr = 0
-	local possibleTypes = {}
-	for _, vt in ipairs(vehicleTypes) do
-		if vt.firstYear <= o.year then
-			table.insert(possibleTypes, vt)
-			fr = fr + vt.frequency
-		end		
-	end
-		
-	value = math.random(1, fr)
-	
-	fr = 0	
-	for _, vt in ipairs(possibleTypes) do
-		fr = fr + vt.frequency
-		if value <= fr then
-			o.type = vt.name
-			break
-		end
-	end
+	-- vehicle type			
+	o.type = rf.getItem(vehicleTypes, function(i) return i.firstYear <= year end)	
 	
 	return o
 end

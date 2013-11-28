@@ -1,3 +1,5 @@
+local rf = require 'random_frequency'
+
 module('problemFactory', package.seeall)
 
 local problemTypes = {}

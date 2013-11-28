@@ -1,4 +1,5 @@
 local customer = require 'customer'
+local rf = require 'random_frequency'
 
 module('customerFactory', package.seeall)
 
@@ -91,8 +92,6 @@ function newCustomer(gt)
 	local s3l = 0
 	local s3h = 0
 	
-	o.yearCreated = gameDate.year
-	
 	o.readStats = {}
 	
 	-- sex 
@@ -112,25 +111,8 @@ function newCustomer(gt)
 		value = math.random(1, #femaleFirstNames)
 		o.firstName = femaleFirstNames[value]
 	end
-	
-	-- ethnicity
-	fr = 0
-	for _, et in ipairs(ethnicities) do
-		fr = fr + et.frequency
-	end		
-	
-	value = math.random(1, fr)	
-	
-	local ethnicity = nil
-	
-	fr = 0	
-	for _, et in ipairs(ethnicities) do
-		fr = fr + et.frequency
-		if value <= fr then
-			ethnicity = et
-			break
-		end
-	end
+		
+	local ethnicity = rf.getItem(ethnicities)
 	
 	s1l = s1l + ethnicity.stats[1]
 	s1h = s1h + ethnicity.stats[2]
@@ -155,23 +137,7 @@ function newCustomer(gt)
 	o.face.facialhair = math.random(1, 6)
 	
 	-- age
-	fr = 0
-	for _, ar in ipairs(ageRanges) do
-		fr = fr + ar.frequency
-	end		
-	
-	value = math.random(1, fr)	
-	
-	local ageRange = nil
-	
-	fr = 0	
-	for _, ar in ipairs(ageRanges) do
-		fr = fr + ar.frequency
-		if value <= fr then
-			ageRange = ar
-			break
-		end
-	end
+	local ageRange = rf.getItem(ageRanges)	
 	
 	s1l = s1l + ageRange.stats[1]
 	s1h = s1h + ageRange.stats[2]
