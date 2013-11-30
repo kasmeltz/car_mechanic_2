@@ -1,6 +1,9 @@
 local customerFactory = require 'customer_factory'
 
-module ('portraitVisualizer', package.seeall)
+local	table, setmetatable, string, pairs, ipairs, io, love, math, print =	
+		table, setmetatable, string, pairs, ipairs, io, love, math, print
+
+module ('portraitVisualizer')
 
 local PORTRAIT_ROOT_FOLDER = 'images/portraits/'
 
@@ -13,7 +16,7 @@ function _M.initialize()
 	local face = { 'shape', 'eyes', 'ears', 'nose', 'mouth', 'hair', 'facialhair' }
 	local sexes = { 'male', 'female' }
 	local ethnicities = { 'white', 'black', 'latino', 'asian', 'indian', 'middle eastern', 'aboriginal' }
-	local ranges = { '18-25', '26-30', '31-40', '41-50', '61-80', '81-120' }
+	local ranges = { '18-25', '26-30', '31-40', '41-50', '51-60', '61-80', '81-120' }
 	
 	local f = io.open('data/portrait_positions.dat', 'w')
 		
@@ -34,8 +37,8 @@ function _M.initialize()
 	end			
 	
 	f:close()
-	]]	
-		
+	]]
+	
 	local data = {}
 	for line in love.filesystem.lines('data/portrait_positions.dat') do
 		table.insert(data, line)
@@ -80,20 +83,65 @@ function _M:loadImages()
 		
 		self.images[fileName] = love.graphics.newImage( path )
 	end
+	
+	local minX = math.huge
+	local maxX = -math.huge
+	local minY = math.huge
+	local maxY = -math.huge
+	
+	self.boundingRectangle = {}
+	for k, img in pairs(self.images) do		
+		local w = img:getWidth()
+		local h = img:getHeight()		
+		local offset = imagePositions[k]
+		local ox = offset[1]
+		local oy = offset[2]
+		
+		if ox < minX then
+			minX = ox
+		end
+		if oy < minY then
+			minY = oy
+		end
+		if ox + w > maxX then
+			maxX = ox + w
+		end
+		if oy + h > maxY then
+			maxY = oy + h
+		end
+	end
+				
+	self.boundingRectangle[1] = minX
+	self.boundingRectangle[2] = minY		
+	self.boundingRectangle[3] = maxX
+	self.boundingRectangle[4] = maxY
+	
+	self.middleX = (self.boundingRectangle[3] + self.boundingRectangle[1]) / 2	
+	
+	self.name = self.customer.firstName .. ' ' .. self.customer.lastName
 end
 
 --
 function _M:draw()	
+	local font = love.graphics.getFont()
 	local sx = self.pos[1]
-	local sy = self.pos[2]
-	for k, v in pairs(self.images) do
+	local sy = self.pos[2]	
+	for k, img in pairs(self.images) do		
 		local offset = imagePositions[k]
-		love.graphics.draw(v, sx + offset[1], sy + offset[2])
+		love.graphics.draw(img, sx + offset[1], sy + offset[2])
 	end
+		
+	sx = self.pos[1] + self.middleX - (font:getWidth(self.name) / 2)
+	sy = self.pos[2] + self.boundingRectangle[4] + font:getHeight()
+	love.graphics.print(self.name, sx, sy)
 end
 
 -- set the position of the visualizer
 function _M:position(x, y)
+	if not x then
+		return self.pos[1], self.pos[2]
+	end
+	
 	self.pos[1] = x
 	self.pos[2] = y
 end

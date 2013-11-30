@@ -1,20 +1,20 @@
-Oil change
-Check oil light is on
+oil change
+needs an oil change
 NONE
-Maintenace
-10,10,10,10,10,10,10,10,10
-Dead battery
-Battery light is on,The vehicle won't start,The vehicle won't start in the cold
-NONE
-Electrical
+maintenance
 2,2,2,2,2,2,2,2,2
-Burnt out break light
-The break lights don't come on
+a dead battery
+the battery light is on,the vehicle won't start,the vehicle won't start in the cold
 NONE
-Maintenance
+parts
 2,2,2,2,2,2,2,2,2
-Bad wiring to break light
-The break lights don't come on
+a burnt out break light
+the break lights don't come on
 NONE
-Electrical
+parts
+2,2,2,2,2,2,2,2,2
+bad wiring to the break lights
+the break lights don't come on
+NONE
+electrical
 2,2,2,2,2,2,2,2,2

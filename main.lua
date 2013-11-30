@@ -5,6 +5,7 @@ local customerFactory = require 'customer_factory'
 local vehicleFactory = require 'vehicle_factory'
 local problemFactory = require 'problem_factory'
 local portraitVisualizer = require 'portrait_visualizer'
+local dialogueFactory = require 'dialogue_factory'
 
 local garage = require 'garage'
 
@@ -18,6 +19,7 @@ function love.load()
 	vehicleFactory.initialize()
 	problemFactory.initialize()
 	portraitVisualizer.initialize()
+	dialogueFactory.initialize()
 	
 	gar = garage:new()
 end

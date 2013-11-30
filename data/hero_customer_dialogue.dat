@@ -1,0 +1,124 @@
+return 
+{
+	regular_start = 
+	{		
+		actor = 'h', 
+		options = 
+		{
+			{
+				line = function() return 'Good ' .. gt:timeOfDay() .. ' ' .. customer:salutation() .. ', how are you today?' end,
+				onChoose = function() garage.reputation = garage.reputation + 10 end,
+				next = function() return 'cust_greet_1' end
+			},
+			{
+				line = function() return 'Screw you' end,
+				onChoose = function() garage.reputation = garage.reputation - 200 end,
+				next = function() return 'cust_angry_1' end
+			}
+		},		
+	},
+	cust_angry_1 = 
+	{
+		actor = 'c',
+		options = 
+		{
+			{
+				line = function() return 'Screw you too I\'m leaving!' end,
+				next = function() return '' end
+			}
+		}
+	},
+	cust_greet_1 = 
+	{
+		actor = 'c',
+		options = 
+		{
+			{
+				line = function() return 'Yes good ' .. gt:timeOfDay() .. '. I\'m ok how are you?' end,
+				next = function() return 'hero_greet_1' end
+			}
+		}
+	},
+	hero_greet_1 = 
+	{
+		actor = 'h',
+		options = 
+		{
+			{
+				line = function() return 'Can\'t complain... but really who would listen anyways?' end,
+				next = function() return 'hero_ask_help' end
+			}
+		}
+	},
+	hero_ask_help = 
+	{
+		actor = 'h',
+		options = 
+		{
+			{
+				line = function() return 'So what can I help you with today?' end,
+				next = function() return 'cust_explain_problem' end,
+			}
+		}
+	},
+	cust_explain_problem = 
+	{
+		actor = 'c',
+		options = 
+		{
+			{
+				condition = function() return customer.vehicle.problems[1].realProblem.category == 'maintenance' end,
+				line = function() return 'My ' .. customer.vehicle.type:lower() .. ' ' .. customer.vehicle.problems[1].realProblem.symptoms[1] .. '.' end,
+				next = function() return  'hero_respond_problem' end
+			},
+			{
+				condition = function() return math.random(1, 100) <= 25 end,
+				line = function() return 'I think that my ' .. customer.vehicle.type:lower() .. ' has ' .. customer.vehicle.problems[1].realProblem.name .. '.' end,
+				next = function() return  'hero_respond_problem' end
+			},
+			{
+				condition = function() return #customer.vehicle.problems == 1 end,
+				line = function() 
+					local s1 = math.random(1, #customer.vehicle.problems[1].realProblem.symptoms)
+					return 'I don\'t know exactly what\'s wrong with my ' .. customer.vehicle.type:lower() .. ', but ' .. customer.vehicle.problems[1].realProblem.symptoms[s1] .. '.' end,
+				next = function() return  'hero_respond_problem' end
+			},
+			{
+				condition = function() return #customer.vehicle.problems > 1 and math.random(1, 100) < 50 end,
+				line = function() 
+					local s1 = math.random(1, #customer.vehicle.problems[1].realProblem.symptoms)
+					return 'I don\'t know exactly what\'s wrong with my ' .. customer.vehicle.type:lower() .. ', but ' .. customer.vehicle.problems[1].realProblem.symptoms[s1] .. '.' end,
+				next = function() return  'hero_respond_problem' end
+			},	
+			{
+				condition = function() return #customer.vehicle.problems >= 2 end,
+				line = function() 
+					local s1 = math.random(1, #customer.vehicle.problems[1].realProblem.symptoms)
+					local s2 = math.random(1, #customer.vehicle.problems[2].realProblem.symptoms)
+					return 'I don\'t know exactly what\'s wrong with my ' .. customer.vehicle.type:lower() .. ', but ' .. customer.vehicle.problems[1].realProblem.symptoms[s1] .. 
+						', and ' .. customer.vehicle.problems[2].realProblem.symptoms[s2] end,
+				next = function() return  'hero_respond_problem' end
+			},				
+		}
+	},
+	hero_respond_problem = 
+	{
+		onStart = function() garage:getCustomerReading(customer) end,
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'I think we can help you with that. When do you need your ' .. customer.vehicle.type:lower() .. ' back?' end,
+				next = function() return 'cust_when_required' end
+			},
+			{
+				line = function() return 'I\'m sorry but we\'re too busy right now. Is it possible for you to come back later?' end,
+				next = function() return 'cust_too_busy' end
+			},
+			{
+				line = function() return 'I\'m sorry but we\'re not currently able to provide that service here.' end,
+				next = function() return 'cust_unable_to_help' end
+			}
+		}
+	}
+}

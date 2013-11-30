@@ -1,11 +1,14 @@
+local 	table, string, tonumber, ipairs, pairs, math, love =	
+		table, string, tonumber, ipairs, pairs, math, love
+		
 local customer = require 'customer'
 local rf = require 'random_frequency'
 
-module('customerFactory', package.seeall)
+module('customerFactory')
 
-local sexes = {}
+sexes = {}
+ethnicities = {}
 local ageRanges = {}
-local ethnicities = {}
 local maleFirstNames = {}
 local femaleFirstNames = {}
 local lastNames = {}
@@ -111,9 +114,10 @@ function newCustomer(gt)
 		value = math.random(1, #femaleFirstNames)
 		o.firstName = femaleFirstNames[value]
 	end
-		
-	local ethnicity = rf.getItem(ethnicities)
 	
+	-- ethnicity
+	local ethnicity = rf.getItem(ethnicities)
+		
 	s1l = s1l + ethnicity.stats[1]
 	s1h = s1h + ethnicity.stats[2]
 	s2l = s2l + ethnicity.stats[3]
@@ -166,9 +170,9 @@ function newCustomer(gt)
 	return o
 end
 
--- returns the age range for a customer
-function ageRange(c, gt)
-	local age = c:age(gt)
+-- returns the age range for a person
+function ageRange(p, gt)
+	local age = p:age(gt)
 	for _, ar in ipairs(ageRanges) do
 		if age >= ar.range[1] and age <= ar.range[2] then
 			return ar

@@ -1,4 +1,9 @@
-module('hero', package.seeall)
+local	setmetatable, math =
+		setmetatable, math
+		
+local personFactory = require 'customer_factory'
+
+module('hero')
 
 _M.READING_PEOPLE = 1
 _M.skillList =
@@ -16,12 +21,28 @@ _M.skillList =
 function _M:new(garage)
 	local o = {}
 	
+	o.birthYear = 1990
+	o.sex = personFactory.sexes[1]
+	o.ethnicity = personFactory.ethnicities[1]
+	o.firstName = 'Harry'
+	o.lastName = 'Arms'
+	
 	o.garage = garage
 	
 	o.skillLevels = 
 	{
-		5
+		1
 	}
+	
+	-- face
+	o.face = { }	
+	o.face.shape = math.random(1, 6)
+	o.face.eyes = math.random(1, 6)
+	o.face.ears = math.random(1, 6)
+	o.face.nose = math.random(1, 6)
+	o.face.mouth = math.random(1, 6)
+	o.face.hair = math.random(1, 6)
+	o.face.facialhair = math.random(1, 6)
 
 	self.__index = self
 	
@@ -68,6 +89,12 @@ function _M:readPerson(person)
 			person.readStats[i] = v
 		end
 	end
+end
+
+--
+function _M:age(gt)
+	local age = gt.date.year - self.birthYear	
+	return age
 end
 
 return _M

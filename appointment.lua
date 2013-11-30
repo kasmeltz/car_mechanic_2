@@ -1,4 +1,7 @@
-module('appointment', package.seeall)
+local 	setmetatable =
+		setmetatable
+		
+module('appointment')
 
 function _M:new()
 	local o = {}

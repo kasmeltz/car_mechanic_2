@@ -1,4 +1,7 @@
-module('appointmentResolver', package.seeall)
+local 	setmetatable, ipairs, table, math =
+		setmetatable, ipairs, table, math
+		
+module('appointmentResolver')
 
 PROBLEMS_FIXED = 1
 

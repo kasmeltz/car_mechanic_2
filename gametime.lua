@@ -1,4 +1,7 @@
-module('gametime', package.seeall)
+local	os, setmetatable = 
+		os, setmetatable
+
+module('gametime')
 
 _M.timeRates = 
 {
@@ -7,7 +10,7 @@ _M.timeRates =
 	{ name = 'regular', timeFactor = 1 },
 	{ name = 'fast', timeFactor = 10 },
 	{ name = 'faster', timeFactor = 100 },
-	{ name = 'fastest', timeFactor = 1000 }
+	{ name = 'fastest', timeFactor = 10000 }
 }
 
 -- returns a new game time object
@@ -91,6 +94,19 @@ end
 -- pauses this game time
 function _M:pause()
 	self.timeRate = 1
+end
+
+-- returns the time of day
+function _M:timeOfDay()
+	if self.date.hour < 12 then
+		return 'morning'
+	elseif self.date.hour < 17 then
+		return 'afternoon'
+	elseif self.date.hour < 21 then
+		return 'evening'
+	else
+		return 'night'
+	end	
 end
 
 return _M

@@ -1,6 +1,9 @@
+local 	table, tonumber, string, ipairs, math, love = 
+		table, tonumber, string, ipairs, math, love
+	
 local rf = require 'random_frequency'
-
-module('vehicleFactory', package.seeall)
+	
+module('vehicleFactory')
 
 local vehicleAges = {}
 local vehicleTypes = {}
@@ -45,18 +48,18 @@ function newVehicle(customer, gt)
 	
 	-- vehicle age
 	local vehicleAge = rf.getItem(vehicleAges)
-
+	
 	value = math.random(vehicleAge.range[1], vehicleAge.range[2])
 	local age = value
 	local year = gameDate.year - age	
 	o.year = year
 	
-	-- mileage	
-	value = math.random(1000, 15000)
+	-- mileage
+	value = math.random(100, 15000)
 	o.kms = (age + 1) * value
 	
-	-- vehicle type			
-	o.type = rf.getItem(vehicleTypes, function(i) return i.firstYear <= year end)	
+	-- vehicle type
+	o.type = rf.getItem(vehicleTypes, function(i) return i.firstYear <= year end).name
 	
 	return o
 end

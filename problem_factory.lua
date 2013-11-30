@@ -1,6 +1,7 @@
-local rf = require 'random_frequency'
-
-module('problemFactory', package.seeall)
+local	table, pairs, string, ipairs, math, love =
+		table, pairs, string, ipairs, math, love
+		
+module('problemFactory')
 
 local problemTypes = {}
 local problemDistributions = {}

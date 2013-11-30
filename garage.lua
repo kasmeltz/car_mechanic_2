@@ -3,10 +3,17 @@ local appointmentResolver = require('appointment_resolver')
 local customerScheduler = require('customer_scheduler')
 local calendar = require('calendar')
 local customer = require('customer')
-local gameTime = require('gameTime')
+local gametime = require('gameTime')
+local dialogueFactory = require ('dialogue_factory')
 local portraitVisualizer = require ('portrait_visualizer')
+local dialogueVisualizer = require ('dialogue_visualizer')
+local customerSkillVisualizer = require ('customer_skill_visualizer')
 
-module ('garage', package.seeall)
+
+local 	os, setmetatable, ipairs, table, pairs, love =
+		os, setmetatable, ipairs, table, pairs, love
+		
+module ('garage')
 
 local MAX_REPUTATION = 40000
 
@@ -25,8 +32,12 @@ function _M:new()
 	o.openingHour = 7	
 	o.closingHour = 19
 	o.reputation = 1000
-	o.workingBays = 2
-	o.parkingSpots = 6
+	
+	o.workingBaysTotal = 2
+	o.parkingSpotsTotal = 6
+	
+	o.workingBaysOccupied = 0
+	o.parkingSpotsOccupied = 0
 	
 	o.worldTime = gametime:new()
 	o.worldTime:setSeconds(os.time { year = 2013, month = 1, day = 2, hour = 7, min = 0, sec = 0 })
@@ -35,6 +46,7 @@ function _M:new()
 	
 	o.aptIndex = 0
 	o.currentApt = nil
+	o.dialogue = nil
 
 	self.__index = self
 	
@@ -49,18 +61,45 @@ function _M:arriveAppointment(apt)
 	apt.customer.arrivedTime = apt.time[#apt.time]
 end
 
+-- close the shop at the end of the day
+function _M:closeShop()
+	self.shopOpen = false
+end
+
+-- open the shop at the start of the day
+function _M:openShop()
+	self.shopOpen = true
+end
+
 -- update the garage every game tick
 function _M:update(dt)
 	self.worldTime:update(dt)
 
 	if self.worldTime.dayAdvanced then
-		self.daysSchedule = self.scheduler:getNextDay(self.worldTime)
+		self.holiday = self.calendar:holiday(self.worldTime)
+		if self.holiday then			
+			self.daysSchedule = {}
+		else 			
+			self.daysSchedule = self.scheduler:getNextDay(self.worldTime)
+		end
 	end
 	
 	if self.worldTime.monthAdvanced then
 	end
 	
 	if self.worldTime.yearAdvanced then
+	end
+	
+	if not self.shopOpen and not self.holiday and self.worldTime.date.hour >= self.openingHour then
+		self:openShop()
+	end
+	
+	if self.shopOpen and not self.holiday and self.worldTime.date.hour >= self.closingHour then
+		self:closeShop()
+	end
+	
+	if self.holiday then
+		return
 	end
 
 	-- test if any customers have arrived
@@ -99,16 +138,31 @@ function _M:update(dt)
 			-- they will leave never to return and your
 			-- reputation will drop
 		end
-	end	
+	end
+	
+	if self.dialogue then
+		self.dialogue:update(dt)
+	end
+	
+	if self.customerReading then
+		self.customerReading:update(dt)
+	end
 end
 
 -- draws the garage 
 function _M:draw()
+	local sw = love.graphics:getWidth()
+	local sh = love.graphics:getHeight()
+	
 	love.graphics.print(self.worldTime:rate().name, 0, 0)
 	love.graphics.print(os.date('%B %d, %Y', self.worldTime.seconds), 0, 20)
 	love.graphics.print(os.date('%I:%M:%S %p', self.worldTime.seconds), 0, 40)
 	
 	love.graphics.print(self.reputation, 0, 60)
+	
+	if self.holiday then
+		love.graphics.print('Closed for ' .. self.holiday.name, 300, 300)
+	end
 	
 	local sy 
 	
@@ -147,10 +201,6 @@ function _M:draw()
 		end
 	end
 	
-	if self.portrait then
-		self.portrait:draw()
-	end
-	
 	if self.currentApt then
 		local c = self.currentApt.customer
 		
@@ -179,52 +229,35 @@ function _M:draw()
 		end
 			
 		sy = sy + 20			
-
-		if c.readStats[1] then		
-			love.graphics.print('Knowledge: ' .. 
-				c.readStats[customer.KNOWLEDGE_STAT], 0, sy)
-				
-			sy = sy + 20
-			
-			love.graphics.print('Gullability: ' .. 
-				c.readStats[customer.GULLIBLE_STAT], 0, sy)
-				
-			sy = sy + 20					
-		end
-
-		local min, max = self.hero:readingPeopleAccuracy()
-	
-		love.graphics.print('There is a ' .. min ..
-			' - ' .. max .. '% chance your readings are accurate', 0, sy)
-
-		sy = sy + 20
-		
-		love.graphics.print('An inaccurate reading will be within ' .. 
-			self.hero:readingPeopleMaxDifference() .. 
-			' points of the real value', 0, sy)
-		sy = sy + 20
-		
-		love.graphics.print('Knowledge: ' .. 
-			c.realStats[customer.KNOWLEDGE_STAT], 0, sy)
-			
-		sy = sy + 20			
-		
-		love.graphics.print('Gullability: ' .. 
-			c.realStats[customer.GULLIBLE_STAT], 0, sy)
-			
-		sy = sy + 20
 		
 		love.graphics.print(c.vehicle.year .. ' ' .. 
-			c.vehicle.type.name .. ' ' .. 
+			c.vehicle.type .. ' ' .. 
 			c.vehicle.kms .. ' kms', 0, sy)	
 
 		sy = sy + 20
 		for _, pr in ipairs(c.vehicle.problems) do
 			love.graphics.print(pr.realProblem.name, 0, sy)	
 			sy = sy + 20
-		end
-				
+		end			
 	end
+	
+	if self.dialogue then
+		love.graphics.setColor(200, 200, 200, 255)
+		love.graphics.rectangle('fill', 30, 30, sw - 60, sh - 60)
+		love.graphics.setColor(32, 32, 32, 255)
+		love.graphics.rectangle('fill', 50, 50, sw - 100, sh - 100)
+		love.graphics.setColor(255, 255, 255, 255)
+		self.dialogue:draw()
+		if self.heroPortrait then
+			self.heroPortrait:draw()
+		end	
+		if self.otherPortrait then
+			self.otherPortrait:draw()
+		end
+		if self.customerReading then
+			self.customerReading:draw()
+		end
+	end	
 end
 
 -- sets the current appointment
@@ -245,15 +278,63 @@ function _M:changeAppointment(d)
 end
 
 --
+function _M:startTalkingCustomer()
+	local sw = love.graphics:getWidth()
+	local sh = love.graphics:getHeight()
+	local pw = 100
+	local ph = 100
+	
+	local dw = (sw - 100) / 2 - 50
+	
+	self:setCurrentAppointment(self.aptIndex)			
+	self.worldTime:rate(3)		
+	
+	self.heroPortrait = portraitVisualizer:new(self.hero, self.worldTime)
+	self.heroPortrait:position(50, 50)	
+	
+	self.otherPortrait = portraitVisualizer:new(self.currentApt.customer, self.worldTime)
+	self.otherPortrait:position(sw - 50 - pw, 50)	
+	
+	local d = dialogueFactory.newCustomerDialogue(self.worldTime, self.hero, self.currentApt.customer)	
+	d:setDialogue('regular_start')
+	self.dialogue = dialogueVisualizer:new(d)
+	
+	self.dialogue:heroPosition(50, 50 + ph + 200)
+	self.dialogue:heroSize(dw, 300)
+	self.dialogue:otherPosition(sw - 50 - dw, 50 + ph + 200)
+	self.dialogue:otherSize(dw, 300)
+	
+	self.customerReading = customerSkillVisualizer:new(self.hero, self.currentApt.customer)
+	self.customerReading:position(sw - 50 - 300, 50 + ph + 50)
+end
+
+--
 function _M:stopTalkingCustomer()
 	self.currentApt.customer.onPremises = false			
 	self.currentApt = nil
 	self.aptIndex = 1
-	self.portrait = nil
+	self.heroPortrait = nil
+	self.otherPortrait = nil
+	self.dialogue = nil
+end
+
+-- show the customer reading
+function _M:getCustomerReading(c)
+	self.hero:readPerson(c)
 end
 
 -- called when a key is released (event)
 function _M:keyreleased(key)
+
+	-- the dialogue visualizer
+	if self.dialogue then
+		local cmd = self.dialogue:keyreleased(key)
+		if cmd == 'close' then
+			self:stopTalkingCustomer()
+		end
+		return
+	end
+		
 	if key == 'right' then
 		self.worldTime:incrementRate(1)
 	elseif key == 'left' then
@@ -294,11 +375,7 @@ function _M:keyreleased(key)
 			self:stopTalkingCustomer()
 		end
 	elseif key == 'return' then				
-		-- to do start customer interaction
-		self:setCurrentAppointment(self.aptIndex)			
-		self.worldTime:rate(3)		
-		self.portrait = portraitVisualizer:new(self.currentApt.customer, self.worldTime)
-		self.portrait:position(300, 400)
+		self:startTalkingCustomer()
 	end
 end
 

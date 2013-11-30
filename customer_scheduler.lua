@@ -1,7 +1,13 @@
+local customerFactory = require 'customer_factory'
+local vehicleFactory = require 'vehicle_factory'
+local problemFactory = require 'problem_factory'
 local gameTime = require 'gameTime'
 local appointment = require 'appointment'
 
-module ('customerScheduler', package.seeall)
+local 	setmetatable, pairs, math, os, table = 
+		setmetatable, pairs, math, os, table
+		
+module ('customerScheduler')
 
 function _M:new(garage)
 	local o = {}
