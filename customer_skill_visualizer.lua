@@ -23,7 +23,7 @@ function _M:new(hero, customer)
 	o.headings = 
 	{
 		'Automotive knowledge',
-		'Lack of money sense'
+		'Money sense'
 	}	
 		
 	self.values = { 0, 0 }
