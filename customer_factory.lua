@@ -81,30 +81,36 @@ function initialize()
 	end
 end
 
+--[[
+local function showStatRanges(sr, msg)
+	print('--------------------------------')
+	print(msg)
+	print('--------------------------------')
+	for i = 1, #sr, 2 do
+		print(sr[i], sr[i + 1])
+	end
+end
+]]
+
 function newCustomer(gt)
 	local gameDate = gt.date
 	
 	local value	
 	local o = customer:new()
 
-	local fr = 0	
-	local s1l = 0
-	local s1h = 100	
-	local s2l = 0
-	local s2h = 100
-	local s3l = 0
-	local s3h = 0
+	local statRanges = {
+		{ 0, 100, 0, 100, 0, 100 }
+	}
 	
 	o.readStats = {}
 	
 	-- sex 
 	value = math.random(1, #sexes)
 	o.sex = sexes[value]
-
-	s1l = o.sex.stats[1]
-	s1h = o.sex.stats[2]
-	s2l = o.sex.stats[3]
-	s2h = o.sex.stats[4]
+	
+	for k, v in ipairs(o.sex.stats) do
+		statRanges[k] = v
+	end
 
 	-- first name
 	if o.sex.name == 'Male' then
@@ -118,10 +124,9 @@ function newCustomer(gt)
 	-- ethnicity
 	local ethnicity = rf.getItem(ethnicities)
 		
-	s1l = s1l + ethnicity.stats[1]
-	s1h = s1h + ethnicity.stats[2]
-	s2l = s2l + ethnicity.stats[3]
-	s2h = s2h + ethnicity.stats[4]
+	for k, v in ipairs(ethnicity.stats) do
+		statRanges[k] = statRanges[k] + v
+	end
 	
 	o.ethnicity = ethnicity	
 
@@ -143,29 +148,26 @@ function newCustomer(gt)
 	-- age
 	local ageRange = rf.getItem(ageRanges)	
 	
-	s1l = s1l + ageRange.stats[1]
-	s1h = s1h + ageRange.stats[2]
-	s2l = s2l + ageRange.stats[3]
-	s2h = s2h + ageRange.stats[4]
+	for k, v in ipairs(ageRange.stats) do
+		statRanges[k] = statRanges[k] + v
+	end
 	
 	local age = math.random(ageRange.range[1], ageRange.range[2])		
 	
 	o.birthYear = gameDate.year - age
 	
 	-- stats
-	s1l = math.max(s1l, 0)
-	s1h = math.min(s1h, 100)
+	for i = 1, #statRanges, 2 do
+		statRanges[i] = math.max(statRanges[i], 0)
+		statRanges[i + 1] = math.min(statRanges[i + 1], 100)
+	end
 	
-	s2l = math.max(s2l, 0)
-	s2h = math.min(s2h, 100)
+	o.realStats = {}
 	
-	local s1 = math.random(s1l, s1h)
-	local s2 = math.random(s2l, s2h)
-	
-	o.realStats =
-	{
-		s1, s2
-	}	
+	for i = 1, #statRanges, 2 do
+		local stat = math.random(statRanges[i] , statRanges[i + 1])
+		table.insert(o.realStats, stat)
+	end	
 	
 	return o
 end

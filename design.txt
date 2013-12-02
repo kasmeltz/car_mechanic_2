@@ -110,3 +110,11 @@ A customers internal willingness to come back as a repeat customer will be influ
 
 The game will keep track of all of the expenses througout the month and then you will get bills at the end of the month that you have to pay. Things that you do will have an impact on your costs.
 So if you stay open later and need to have lights on after it gets dark, your hydro bill will be higher at the end of the month, etc. etc.
+
+Your dialogue choices should have an impact on customer's decisions. There should be a hidden stat called influence that will go up or down based on the dialogue choices that you make. 
+As you increase your personal skills, you gain access to new dialogue choices that further influence the customer's decisions towards you in a positive way.
+
+The customer should have more stats that affect how he will react in certain situations. One should be anger level... this will determine how likely the customer is to react angrily if something happens that doesn't
+go the customer's way.
+
+The customer should get more and more angry the more times they have to come back! (if you try to re-schedule them more than once, or if they come back and the vechile isn't ready and have to come back again... etc)

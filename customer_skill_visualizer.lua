@@ -17,16 +17,18 @@ function _M:new(hero, customer)
 	o.colors =
 	{
 		{ 150, 50, 150, 255 },
-		{ 50, 150, 150, 255 }
+		{ 50, 150, 150, 255 },
+		{ 150, 50, 50, 255 }
 	}
 	
 	o.headings = 
 	{
 		'Automotive knowledge',
-		'Money sense'
+		'Money sense',
+		'Temper'
 	}	
 		
-	self.values = { 0, 0 }
+	self.values = { 0, 0, 0 }
 	
 	self.__index = self
 	

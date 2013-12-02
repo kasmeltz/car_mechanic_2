@@ -35,16 +35,18 @@ function _M:advance(v)
 	end
 	
 	local nextBranch = self.currentDialogue.options[v].next()
+		
 	self.currentDialogue = self.tree[nextBranch]
 	
 	if self.currentDialogue and self.currentDialogue.onStart then
 		self.currentDialogue.onStart()
 	end
+	
+	return self.currentDialogue == nil
 end
 
 --
 function _M:currentIsHero()
-	if not self.currentDialogue then return false end	
 	return self.currentDialogue.actor == 'h'
 end
 

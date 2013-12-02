@@ -116,13 +116,12 @@ function _M:loadImages()
 	self.boundingRectangle[3] = maxX
 	self.boundingRectangle[4] = maxY
 	
-	self.middleX = (self.boundingRectangle[3] + self.boundingRectangle[1]) / 2	
-	
-	self.name = self.customer.firstName .. ' ' .. self.customer.lastName
+	self.middleX = (self.boundingRectangle[3] + self.boundingRectangle[1]) / 2		
 end
 
 --
 function _M:draw()	
+	local name = self.customer:name()
 	local font = love.graphics.getFont()
 	local sx = self.pos[1]
 	local sy = self.pos[2]	
@@ -131,9 +130,9 @@ function _M:draw()
 		love.graphics.draw(img, sx + offset[1], sy + offset[2])
 	end
 		
-	sx = self.pos[1] + self.middleX - (font:getWidth(self.name) / 2)
+	sx = self.pos[1] + self.middleX - (font:getWidth(name) / 2)
 	sy = self.pos[2] + self.boundingRectangle[4] + font:getHeight()
-	love.graphics.print(self.name, sx, sy)
+	love.graphics.print(name, sx, sy)
 end
 
 -- set the position of the visualizer

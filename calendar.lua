@@ -36,4 +36,11 @@ function _M:holiday(gt)
 	end
 end
 
+--
+function _M:proposedAppointmentTime(currentTime, aptTime)
+	-- to do return the appropriate text based on the current date
+	-- and the proposed appointment date
+	return 'later'
+end
+
 return _M

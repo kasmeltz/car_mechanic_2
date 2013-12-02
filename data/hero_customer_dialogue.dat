@@ -1,18 +1,18 @@
 return 
 {
-	regular_start = 
+	first_contact_start = 
 	{		
 		actor = 'h', 
 		options = 
 		{
 			{
-				line = function() return 'Good ' .. gt:timeOfDay() .. ' ' .. customer:salutation() .. ', how are you today?' end,
-				onChoose = function() garage.reputation = garage.reputation + 10 end,
+				line = function() return 'Good ' .. worldTime:timeOfDay() .. ' ' .. customer:salutation() .. ', how are you today?' end,
+				onChoose = function() garage:reputationInc(10) end,
 				next = function() return 'cust_greet_1' end
 			},
 			{
 				line = function() return 'Screw you' end,
-				onChoose = function() garage.reputation = garage.reputation - 200 end,
+				onChoose = function() garage:reputationInc(-200) end,
 				next = function() return 'cust_angry_1' end
 			}
 		},		
@@ -34,7 +34,7 @@ return
 		options = 
 		{
 			{
-				line = function() return 'Yes good ' .. gt:timeOfDay() .. '. I\'m ok how are you?' end,
+				line = function() return 'Yes good ' .. worldTime:timeOfDay() .. '. I\'m ok how are you?' end,
 				next = function() return 'hero_greet_1' end
 			}
 		}
@@ -57,7 +57,7 @@ return
 		{
 			{
 				line = function() return 'So what can I help you with today?' end,
-				next = function() return 'cust_explain_problem' end,
+				next = function() return 'cust_explain_problem' end
 			}
 		}
 	},
@@ -103,7 +103,7 @@ return
 	},
 	hero_respond_problem = 
 	{
-		onStart = function() garage:getCustomerReading(customer) end,
+		onStart = function() hero:readPerson(customer) end,
 		actor = 'h',
 		options =
 		{
@@ -118,6 +118,220 @@ return
 			{
 				line = function() return 'I\'m sorry but we\'re not currently able to provide that service here.' end,
 				next = function() return 'cust_unable_to_help' end
+			}
+		}
+	},
+	cust_unable_to_help = 
+	{
+		actor = 'c',
+		options =
+		{
+			{
+				-- to do should this be based on a feature of the customer rather than just random?
+				condition = function() return math.random(1, 100) < 50 end,
+				line = function() return 'I understand, you can\'t do everyhing, right? Thanks anyways.' end,
+				onChoose = function() apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) end,
+				next = function() return '' end
+			},
+			{
+				line = function() return 'You don\'t think you can help me? What kind of shop is this anyways? I drove all the way here and now I\'ve got to find somewhere else?' end,
+				next = function() return 'hero_unable_help_angry' end
+			}
+		}
+	},
+	hero_unable_help_angry = 
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				condition = function() return hero:communicationLevel() > 50 end,
+				line = function() return 'I understand that it\'s frustrating that you drove all the way here and we couldn\'t help you so now you have to find somewhere else. I wish we could help but we just don\'t have the equpiment or expertise to help with what you need.' end,
+				next = function() return 'cust_unable_to_help_understood' end
+			},
+			{
+				line = function() return 'Hey, we\'re a small shop we can\'t do everything around here.' end,
+				onChoose = function() 
+					customer:happinessInc(-50)
+					apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) 
+				end,
+				next = function() return '' end
+			}
+		}
+	},
+	cust_unable_to_help_understood = 
+	{
+		actor = 'c',
+		options =
+		{
+			{
+				line = function() return 'I understand, you can\'t do everyhing, right? Thanks anyways.' end,
+				onChoose = function() 
+					hero:skillPointsInc(1)
+					customer:happinessInc(50)
+					apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) 
+				end,
+				next = function() return '' end
+			}
+		}
+	},
+	cust_too_busy = 
+	{
+		actor = 'c',
+		options =
+		{
+			{
+				-- to do should this be based on a feature of the customer rather than just random?
+				condition = function() return math.random(1, 100) < 100 end,
+				line = function() return 'It\s not super urgent so yes I could possible come back later. When could I have it looked at?' end,
+				next = function() return 'hero_when_available' end
+			},
+			{
+				line = function() return 'I\'m sorry the problem is urgent and I need it looked at right away. Maybe next time!' end,
+				next = function() return '' end,
+				onChoose = function() apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) end
+			}
+		}
+	},
+	hero_when_available = 
+	{
+		onStart = function() garage:showCalendar() end,
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'Let me check my computer to see when we could have a look at it.' end,
+				next = function() return 'hero_suggest_come_back' end,
+				onChoose = function() garage:showCalendar() end
+			}
+		}
+	},
+	hero_suggest_come_back = 
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'What about ' .. calendar:proposedAppointmentTime(worldTime, garage.currentAptTime) .. '?' end,
+				next = function() return 'cust_decide_come_back' end
+			}
+		}
+	},
+	cust_decide_come_back = 
+	{
+		actor = 'c',
+		options =
+		{
+			{
+				condition = function() return customer:acceptAppointment(worldTime, garage.currentAptTime) end,
+				line = function() return 'Sure that time will work for me. I\'ll come back then.' end,
+				next = function() return 'hero_yes_come_back' end
+			},
+			{
+				line = function() return 'I\'m sorry the problem is a little more urgent than that, and I need it looked at sooner. Maybe next time!' end,
+				next = function() return '' end,
+				onChoose = function() apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) end
+			}
+		}
+	},
+	hero_yes_come_back = 
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'Excellent we will see you then!' end,
+				next = function() return '' end,
+				onChoose = function() scheduler:scheduleComeBack(appointment, garage.currentAptTime) end
+			}
+		}
+	},
+	cust_when_required =
+	{
+		actor = 'c',
+		options =
+		{
+			{
+				line = function() return 'I need it back by ' .. customer:finishTimeRequired(worldTime) .. '.' end,
+				next = function() return 'hero_can_finish_on_time' end
+			}
+		}
+	},
+	hero_can_finish_on_time =
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'I think we can have it back to you by that time.' end,
+				next = function() return 'hero_accept_vehicle' end
+			},
+			{
+				line = function() return 'I don\'t think we can have it ready by then. Let me check and see when I could have it ready for you...' end,
+				next = function() return 'hero_suggest_finish_time' end,
+				onChoose = function() garage:showCalendar() end
+			}
+		}
+	},
+	hero_suggest_finish_time =
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'What about ' .. calendar:proposedAppointmentTime(worldTime, garage.currentAptTime) .. '?' end,
+				next = function() return 'customer_accept_finish_time' end
+			}
+		}
+	},
+	customer_accept_finish_time =
+	{
+		actor = 'c',
+		options =
+		{
+			{
+				condition = function() return customer:acceptFinishTime(worldTime, garage.currentAptTime) end,
+				line = function() return 'Sure I can wait until then to pick it up.' end,
+				next = function() return 'hero_accept_vehicle' end
+			},
+			{
+				line = function() return 'I\'m sorry the problem is a little more urgent than that, and I need it to be finished sooner. Maybe next time!' end,
+				next = function() return '' end,
+				onChoose = function() apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) end
+			}
+		}
+	},
+	hero_accept_vehicle =
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'What\'s your name?' end,
+				next = function() return 'customer_give_name' end
+			}
+		}
+	},
+	customer_give_name =
+	{
+		actor = 'c',
+		options =
+		{
+			{
+				line = function() customer:revealName() return customer:name() end,
+				next = function() return 'hero_ask_for_keys' end
+			}
+		}
+	},
+	hero_ask_for_keys =
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'All right ' .. customer.firstName .. ', if I can just have your keys, we will get started on that right away for you.' end,
+				next = function() return '' end,
+				onChoose = function() garage:acceptVehicle(appointment) end
 			}
 		}
 	}

@@ -109,4 +109,10 @@ function _M:timeOfDay()
 	end	
 end
 
+--
+function _M:tostring(fmt)
+	local fmt = fmt or '%x %X'	
+	return os.date(fmt, self.seconds)
+end
+
 return _M

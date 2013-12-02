@@ -3,7 +3,7 @@ local appointmentResolver = require('appointment_resolver')
 local customerScheduler = require('customer_scheduler')
 local calendar = require('calendar')
 local customer = require('customer')
-local gametime = require('gameTime')
+local gameTime = require('gameTime')
 local dialogueFactory = require ('dialogue_factory')
 local portraitVisualizer = require ('portrait_visualizer')
 local dialogueVisualizer = require ('dialogue_visualizer')
@@ -36,10 +36,10 @@ function _M:new()
 	o.workingBaysTotal = 2
 	o.parkingSpotsTotal = 6
 	
-	o.workingBaysOccupied = 0
-	o.parkingSpotsOccupied = 0
+	o.workingBays = {}
+	o.parkingSpots = {}
 	
-	o.worldTime = gametime:new()
+	o.worldTime = gameTime:new()
 	o.worldTime:setSeconds(os.time { year = 2013, month = 1, day = 2, hour = 7, min = 0, sec = 0 })
 	
 	o.daysSchedule = o.scheduler:getNextDay(o.worldTime)
@@ -168,6 +168,22 @@ function _M:draw()
 	
 	sy = 80
 	
+	love.graphics.print('Parking spots occupied: ' .. #self.parkingSpots ,0, sy)
+	
+	sy = sy + 20
+	
+	for _, v in ipairs(self.parkingSpots) do
+		local c = v.customer
+		local a = c.appointment
+		
+		love.graphics.print(c:name() .. '->' .. v.year .. ' ' .. 
+			v.type .. ' ' .. 
+			v.kms .. ' kms -> Due by: ' .. a.time[#a.time]:tostring(), 0, sy)	
+		sy = sy + 20
+	end
+	
+	sy = sy + 20
+	
 	for k, apt in ipairs(self.unresolvedAppointements) do
 		if apt.customer.onPremises then
 			local c = apt.customer
@@ -189,14 +205,15 @@ function _M:draw()
 		
 		sy = 25
 		for _, apt in ipairs(self.daysSchedule) do
-			love.graphics.print(os.date('%x %X', apt.time[1].seconds), 650, sy)
+			love.graphics.print(apt.time[1]:tostring(), 650, sy)
 			sy = sy + 20
 		end
 	end
 		
 	for _, apt in ipairs(self.unresolvedAppointements) do
+		love.graphics.print('UNRESOLVED: ' .. apt.customer.firstName .. ' ' .. apt.customer.lastName, 650, sy)
 		if #apt.time > 1 then
-			love.graphics.print(os.date('%x %X', apt.time[#apt.time].seconds), 650, sy)
+			love.graphics.print(apt.time[#apt.time]:tostring(), 900, sy)
 			sy = sy + 20
 		end
 	end
@@ -295,13 +312,13 @@ function _M:startTalkingCustomer()
 	self.otherPortrait = portraitVisualizer:new(self.currentApt.customer, self.worldTime)
 	self.otherPortrait:position(sw - 50 - pw, 50)	
 	
-	local d = dialogueFactory.newCustomerDialogue(self.worldTime, self.hero, self.currentApt.customer)	
-	d:setDialogue('regular_start')
+	local d = dialogueFactory.newCustomerDialogue(self, self.currentApt)	
+	d:setDialogue('first_contact_start')
 	self.dialogue = dialogueVisualizer:new(d)
 	
-	self.dialogue:heroPosition(50, 50 + ph + 200)
+	self.dialogue:heroPosition(50, 50 + ph + 300)
 	self.dialogue:heroSize(dw, 300)
-	self.dialogue:otherPosition(sw - 50 - dw, 50 + ph + 200)
+	self.dialogue:otherPosition(sw - 50 - dw, 50 + ph + 300)
 	self.dialogue:otherSize(dw, 300)
 	
 	self.customerReading = customerSkillVisualizer:new(self.hero, self.currentApt.customer)
@@ -311,16 +328,40 @@ end
 --
 function _M:stopTalkingCustomer()
 	self.currentApt.customer.onPremises = false			
+	self.currentApt.customer.interviewed = false
 	self.currentApt = nil
 	self.aptIndex = 1
 	self.heroPortrait = nil
 	self.otherPortrait = nil
-	self.dialogue = nil
+	self.dialogue = nil	
 end
 
--- show the customer reading
-function _M:getCustomerReading(c)
-	self.hero:readPerson(c)
+--
+function _M:acceptVehicle()
+	-- to do
+	-- what to do if you don't actually have space for the vehicle
+	if #self.parkingSpots >= self.parkingSpotsTotal then
+	else
+		table.insert(self.parkingSpots, self.currentApt.customer.vehicle)
+		self.scheduler:scheduleComeBack(self.currentApt, self.currentApt.customer.pickUpTime)
+	end
+end
+
+--
+function _M:reputationInc(v)
+	self.reputation = self.reputation + v
+	
+	if self.onReputation then	
+		self.onReputation(v, self.reputation)
+	end	
+end
+
+-- show the calendar for selecting an appointment time
+function _M:showCalendar()
+	local aptTime = gameTime:new()			
+	local oneHour = 60 * 60
+	aptTime:setSeconds(self.worldTime.seconds + oneHour)
+	self.currentAptTime = aptTime
 end
 
 -- called when a key is released (event)
@@ -342,23 +383,8 @@ function _M:keyreleased(key)
 	elseif key =='up' then 
 		self:changeAppointment(-1)	
 	elseif key =='down' then 
-		self:changeAppointment(1)			
-	elseif key == 'a' then
-		if self.currentApt then
-			if not self.currentApt.customer.interviewed then
-				self.hero:readPerson(self.currentApt.customer)
-				self.currentApt.customer.interviewed = true
-			end
-		end
-	elseif key == 'b' then
-		if self.currentApt and self.currentApt.customer.interviewed then		
-			local aptTime = gameTime:new()		
-			aptTime:setSeconds(self.worldTime.seconds + 3600)
-		
-			self.scheduler:scheduleComeBack(self.currentApt, aptTime)
-			
-			self:stopTalkingCustomer()
-		end
+		self:changeAppointment(1)	
+	--[[		
 	elseif key == 'c' then
 		if self.currentApt and self.currentApt.customer.interviewed then	
 			local problems = self.currentApt.customer.vehicle.problems
@@ -374,6 +400,7 @@ function _M:keyreleased(key)
 			
 			self:stopTalkingCustomer()
 		end
+	]]
 	elseif key == 'return' then				
 		self:startTalkingCustomer()
 	end

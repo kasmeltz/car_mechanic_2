@@ -4,6 +4,7 @@ local 	setmetatable, ipairs, table, math =
 module('appointmentResolver')
 
 PROBLEMS_FIXED = 1
+CUSTOMER_SENT_AWAY = 2
 
 resolutions = 
 {

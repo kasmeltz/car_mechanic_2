@@ -27,12 +27,16 @@ end
 
 --
 function _M:advance()
+	local finished
+	
 	if self.dialogue:currentIsHero() then
-		self.dialogue:advance(self.heroSelected)
+		finished = self.dialogue:advance(self.heroOptions[self.heroSelected].idx)
 	else	
-		self.dialogue:advance(self.otherSelected)
+		finished = self.dialogue:advance(self.otherSelected)
 	end		
 
+	if finished then return end
+	
 	if self.dialogue:currentIsHero() then	
 		self.heroOptions = nil
 		self.heroSelected = 1
@@ -48,9 +52,9 @@ function _M:update(dt)
 		if not self.heroOptions then
 			local d = self.dialogue:current()
 			self.heroOptions = {}
-			for _, opt in ipairs(d.options) do
+			for k, opt in ipairs(d.options) do
 				if not opt.condition or (opt.condition and opt.condition()) then
-					self.heroOptions[#self.heroOptions + 1] = opt.line()
+					self.heroOptions[#self.heroOptions + 1] = { line = opt.line(), idx = k }
 				end
 			end
 		end
@@ -77,7 +81,7 @@ function _M:draw()
 		local sx = self.heroPos[1]
 		local sy = self.heroPos[2]		
 		for k, opt in ipairs(self.heroOptions) do
-			local width, lines = font:getWrap(opt, self.heroSz[1])			
+			local width, lines = font:getWrap(opt.line, self.heroSz[1])			
 			
 			if self.heroSelected == k then
 				love.graphics.setColor(50, 128, 50, 255)
@@ -87,7 +91,7 @@ function _M:draw()
 				love.graphics.setColor(50, 128, 50, 255)
 			end
 			
-			love.graphics.printf( opt, sx, sy, self.heroSz[1], 'left' )				
+			love.graphics.printf( opt.line, sx, sy, self.heroSz[1], 'left' )				
 			
 			sy = (sy + lines * fh) + fh
 		end

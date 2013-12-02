@@ -1,6 +1,7 @@
 local 	assert, loadstring, setfenv, math, love =
 		assert, loadstring, setfenv, math, love
 	
+local appointmentResolver = require 'appointment_resolver'	
 local dialogue = require 'dialogue'
 
 module ('dialogueFactory')
@@ -13,15 +14,20 @@ function initialize()
 end
 
 -- creates a new dialogue with a customer
-function newCustomerDialogue(gt, hero, customer)
+function newCustomerDialogue(garage, appointment)
 	local fn = assert(loadstring(heroCustomerDialogueTree))
 	
 	local context = {
+		calendar = garage.calendar,
+		scheduler = garage.scheduler,
+		appointment = appointment,
+		apptResolverInstance = garage.apptResolver,
+		appointmentResolver = appointmentResolver,
 		math = math,
-		garage = hero.garage,
-		gt = gt,
-		hero = hero,
-		customer = customer	
+		garage = garage,
+		worldTime = garage.worldTime,
+		hero = garage.hero,
+		customer = appointment.customer	
 	}
 	setfenv(fn, context)
 	

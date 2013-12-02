@@ -141,11 +141,11 @@ end
 -- schedules a customer to come back at a certain time
 -- as part of the same appointment
 function _M:scheduleComeBack(apt, gt)		
+	
 	-- to do
 	-- add or subtract random amount to the time 
 	-- the customer will actually return
 	-- could be based on customer stats
-	apt.customer.interviewed = false
 	
 	table.insert(apt.time,  gt)
 end

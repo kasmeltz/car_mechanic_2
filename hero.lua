@@ -5,14 +5,17 @@ local personFactory = require 'customer_factory'
 
 module('hero')
 
-_M.READING_PEOPLE = 1
+_M.PERSONAL_INTERACTION = 1
 _M.skillList =
 {
 	{ 
-		name = 'Reading People', levels = 
+		name = 'Personal Interaction', 
+		levels = 
 		{
 			{ 10, 20, 30, 40, 50, 65, 80 },
-			{ 90, 80, 70, 60, 50, 40, 30 }
+			{ 90, 80, 70, 60, 50, 40, 30 },
+			{ 0, 20, 40, 60, 80, 90, 100 },
+			{ 100, 200, 300, 400, 500, 600, 700 }
 		}	
 	}		
 }
@@ -26,6 +29,8 @@ function _M:new(garage)
 	o.ethnicity = personFactory.ethnicities[1]
 	o.firstName = 'Harry'
 	o.lastName = 'Arms'
+	
+	o.skillPoints = 0
 	
 	o.garage = garage
 	
@@ -50,6 +55,20 @@ function _M:new(garage)
 end
 
 --
+function _M:name()
+	return self.firstName .. ' ' .. self.lastName
+end
+
+--
+function _M:skillPointsInc(v)
+	self.skillPoints = self.skillPoints + v
+	
+	if self.onSkillPoints then	
+		self.onSkillPoints(v, self.skillPoints)
+	end	
+end
+
+--
 function _M:getSkill(skill, subSkill)
 	local skillLevel = self.skillLevels[skill]
 	return skillList[skill].levels[subSkill][skillLevel]
@@ -57,13 +76,18 @@ end
 
 --
 function _M:readingPeopleAccuracy()
-	local maxAccuracy = self:getSkill(READING_PEOPLE, 1)
+	local maxAccuracy = self:getSkill(PERSONAL_INTERACTION, 1)
 	return maxAccuracy - 10, maxAccuracy
 end
 
 --
 function _M:readingPeopleMaxDifference()
-	return self:getSkill(READING_PEOPLE, 2)
+	return self:getSkill(PERSONAL_INTERACTION, 2)
+end
+
+--
+function _M:communicationLevel()
+	return self:getSkill(PERSONAL_INTERACTION, 3)
 end
 
 --
