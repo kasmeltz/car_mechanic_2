@@ -14,20 +14,22 @@ function initialize()
 end
 
 -- creates a new dialogue with a customer
-function newCustomerDialogue(garage, appointment)
+function newCustomerDialogue(world, appointment)
 	local fn = assert(loadstring(heroCustomerDialogueTree))
 	
 	local context = {
-		calendar = garage.calendar,
-		scheduler = garage.scheduler,
+		world = world,
+		calendar = world:calendar(),
+		scheduler = world:scheduler(),
 		appointment = appointment,
-		apptResolverInstance = garage.apptResolver,
+		apptResolverInstance = world:appointmentResolver(),
 		appointmentResolver = appointmentResolver,
 		math = math,
-		garage = garage,
-		worldTime = garage.worldTime,
-		hero = garage.hero,
-		customer = appointment.customer	
+		garage = world:garage(),
+		worldTime = world:worldTime(),
+		hero = world:hero(),
+		customer = appointment:customer(),
+		vehicle = appointment:customer():vehicle()
 	}
 	setfenv(fn, context)
 	

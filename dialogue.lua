@@ -7,8 +7,7 @@ module ('dialogue')
 function _M:new(tree)
 	local o = {}
 	
-	o.currentDialogue = tree.start
-	o.tree = tree
+	o._tree = tree
 
 	self.__index = self
 	
@@ -17,37 +16,37 @@ end
 
 -- 
 function _M:setDialogue(n)
-	self.currentDialogue = self.tree[n]
+	self._currentDialogue = self._tree[n]
 end
 
 --
 function _M:current()
-	return self.currentDialogue
+	return self._currentDialogue
 end
 
 -- 
 function _M:advance(v)
 	local v = v or 1	
 	
-	local onChoose = self.currentDialogue.options[v].onChoose
+	local onChoose = self._currentDialogue.options[v].onChoose
 	if onChoose then
 		onChoose()
 	end
 	
-	local nextBranch = self.currentDialogue.options[v].next()
+	local nextBranch = self._currentDialogue.options[v].next()
 		
-	self.currentDialogue = self.tree[nextBranch]
+	self._currentDialogue = self._tree[nextBranch]
 	
-	if self.currentDialogue and self.currentDialogue.onStart then
-		self.currentDialogue.onStart()
+	if self._currentDialogue and self._currentDialogue.onStart then
+		self._currentDialogue.onStart()
 	end
 	
-	return self.currentDialogue == nil
+	return self._currentDialogue == nil
 end
 
 --
 function _M:currentIsHero()
-	return self.currentDialogue.actor == 'h'
+	return self._currentDialogue.actor == 'h'
 end
 
 return _M

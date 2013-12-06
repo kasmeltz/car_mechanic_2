@@ -21,33 +21,31 @@ _M.skillList =
 }
 
 -- returns a new hero object
-function _M:new(garage)
+function _M:new()
 	local o = {}
 	
-	o.birthYear = 1990
-	o.sex = personFactory.sexes[1]
-	o.ethnicity = personFactory.ethnicities[1]
-	o.firstName = 'Harry'
-	o.lastName = 'Arms'
+	o._birthYear = 1990
+	o._sex = personFactory.sexes[1]
+	o._ethnicity = personFactory.ethnicities[1]
+	o._firstName = 'Harry'
+	o._lastName = 'Arms'
 	
-	o.skillPoints = 0
+	o._skillPoints = 0
 	
-	o.garage = garage
-	
-	o.skillLevels = 
+	o._skillLevels = 
 	{
 		1
 	}
 	
 	-- face
-	o.face = { }	
-	o.face.shape = math.random(1, 6)
-	o.face.eyes = math.random(1, 6)
-	o.face.ears = math.random(1, 6)
-	o.face.nose = math.random(1, 6)
-	o.face.mouth = math.random(1, 6)
-	o.face.hair = math.random(1, 6)
-	o.face.facialhair = math.random(1, 6)
+	o._face = { }	
+	o._face.shape = math.random(1, 6)
+	o._face.eyes = math.random(1, 6)
+	o._face.ears = math.random(1, 6)
+	o._face.nose = math.random(1, 6)
+	o._face.mouth = math.random(1, 6)
+	o._face.hair = math.random(1, 6)
+	o._face.facialhair = math.random(1, 6)
 
 	self.__index = self
 	
@@ -55,22 +53,58 @@ function _M:new(garage)
 end
 
 --
+function _M:sex(v)
+	if not v then return self._sex end
+	self._sex = v
+end
+
+--
+function _M:firstName(v)
+	if not v then return self._firstName end
+	self._firstName = v
+end
+
+--
+function _M:lastName(v)
+	if not v then return self._lastName end
+	self._lastName = v
+end
+
+--
+function _M:ethnicity(v)
+	if not v then return self._ethnicity end
+	self._ethnicity = v
+end
+
+--
+function _M:face(v)
+	if not v then return self._face end
+	self._face = v
+end
+
+--
+function _M:birthYear(v)
+	if not v then return self._birthYear end
+	self._birthYear = v
+end
+
+--
 function _M:name()
-	return self.firstName .. ' ' .. self.lastName
+	return self._firstName .. ' ' .. self._lastName
 end
 
 --
 function _M:skillPointsInc(v)
-	self.skillPoints = self.skillPoints + v
+	self._skillPoints = self._skillPoints + v
 	
 	if self.onSkillPoints then	
-		self.onSkillPoints(v, self.skillPoints)
+		self.onSkillPoints(v, self._skillPoints)
 	end	
 end
 
 --
 function _M:getSkill(skill, subSkill)
-	local skillLevel = self.skillLevels[skill]
+	local skillLevel = self._skillLevels[skill]
 	return skillList[skill].levels[subSkill][skillLevel]
 end
 
@@ -92,32 +126,35 @@ end
 
 --
 function _M:readPerson(person)
+	local realStats = person:realStats()
+	local readStats = person:readStats()
+	
 	local min, max = self:readingPeopleAccuracy()
 	local maxDifference = self:readingPeopleMaxDifference() 
 	
 	local accuracy = math.random(min, max)
 	local accurateScore = math.random(1, 100)
 		
-	for i = 1, #person.realStats do
+	for i = 1, #realStats do
 		if (accurateScore <= accuracy) then
-			person.readStats[i] = person.realStats[i]
+			readStats[i] = realStats[i]
 		else	
 			local differentScore = -maxDifference + 
 				math.random(1, maxDifference * 2)
 				
-			local v = math.floor(person.realStats[i] + 
+			local v = math.floor(realStats[i] + 
 				differentScore)		
 			v = math.max(v, 0)
 			v = math.min(v, 100)
 			
-			person.readStats[i] = v
+			readStats[i] = v
 		end
 	end
 end
 
 --
 function _M:age(gt)
-	local age = gt.date.year - self.birthYear	
+	local age = gt:date().year - self._birthYear	
 	return age
 end
 

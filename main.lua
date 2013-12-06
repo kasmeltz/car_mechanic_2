@@ -7,12 +7,11 @@ local problemFactory = require 'problem_factory'
 local portraitVisualizer = require 'portrait_visualizer'
 local dialogueFactory = require 'dialogue_factory'
 
-local garage = require 'garage'
+local gameWorld = require 'game_world'
 
 -------------------------------------------------------------------------------
--- garage
-local gar
--------------------------------------------------------------------------------
+-- game world
+local gw
 
 function love.load()
 	customerFactory.initialize()
@@ -21,17 +20,18 @@ function love.load()
 	portraitVisualizer.initialize()
 	dialogueFactory.initialize()
 	
-	gar = garage:new()
+	gw = gameWorld:new()
+	gw:startNew()
 end
 
 function love.update(dt)
-	gar:update(dt)
+	gw:update(dt)
 end
 
 function love.draw()
-	gar:draw()
+	gw:draw()
 end
 
 function love.keyreleased(key)
-	gar:keyreleased(key)
+	gw:keyreleased(key)
 end

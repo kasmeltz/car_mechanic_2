@@ -7,28 +7,28 @@ module ('customerSkillVisualizer')
 function _M:new(hero, customer)
 	local o = {}
 
-	o.hero = hero
-	o.customer = customer
-	o.pos = { 0, 0 }
+	o._hero = hero
+	o._customer = customer
+	o._position = { 0, 0 }
 	
 	local min, max = hero:readingPeopleAccuracy()
-	o.accuracy = { min, max }
+	o._accuracy = { min, max }
 	
-	o.colors =
+	o._colors =
 	{
 		{ 150, 50, 150, 255 },
 		{ 50, 150, 150, 255 },
 		{ 150, 50, 50, 255 }
 	}
 	
-	o.headings = 
+	o._headings = 
 	{
 		'Automotive knowledge',
 		'Money sense',
 		'Temper'
 	}	
 		
-	self.values = { 0, 0, 0 }
+	o._values = { 0, 0, 0 }
 	
 	self.__index = self
 	
@@ -37,26 +37,28 @@ end
 
 --
 function _M:update(dt)
-	for k, stat in ipairs(self.customer.readStats) do
-		self.values[k] = self.values[k] + dt * 35
-		if self.values[k] > stat then self.values[k] = stat end
+	for k, stat in ipairs(self._customer:readStats()) do
+		self._values[k] = self._values[k] + dt * 35
+		if self._values[k] > stat then self._values[k] = stat end
 	end	
 end
 
 --
 function _M:draw()	
+	local customer = self._customer
+	
 	local sx
-	local sy = self.pos[2]
+	local sy = self._position[2]
 	local mw = 200
 	local sw = 0
 	
-	for k, stat in ipairs(self.customer.realStats) do
-		sx = self.pos[1] + 20
-		love.graphics.setColor(self.colors[k])		
-		love.graphics.print(self.headings[k], sx, sy)	
+	for k, _ in ipairs(customer:realStats()) do
+		sx = self._position[1] + 20
+		love.graphics.setColor(self._colors[k])		
+		love.graphics.print(self._headings[k], sx, sy)	
 		sy = sy + 20
-		if self.customer.readStats[k] then
-			local sw = (self.values[k] / 100) * mw
+		if customer:readStat(k) then
+			local sw = (self._values[k] / 100) * mw
 			love.graphics.rectangle('fill', sx, sy, sw, 20)
 		end			
 		love.graphics.setColor(255, 255, 255, 255)
@@ -67,17 +69,18 @@ function _M:draw()
 		sy = sy + 30
 	end
 	
-	sx = self.pos[1]
-	love.graphics.print('(Correct ' .. self.accuracy[1] .. '-' .. self.accuracy[2] .. '% of the time, all the time)!', sx, sy)
+	sx = self._position[1]
+	love.graphics.print('(Correct ' .. self._accuracy[1] .. '-' .. self._accuracy[2] .. '% of the time, all the time)!', sx, sy)
 end
 
+--
 function _M:position(x, y)
 	if not x then 
-		return self.pos[1], self.pos[2]
+		return self._position[1], self._position[2]
 	end
 	
-	self.pos[1] = x
-	self.pos[2] = y
+	self._position[1] = x
+	self._position[2] = y
 end
 
 return _M

@@ -9,12 +9,10 @@ local 	setmetatable, pairs, math, os, table =
 		
 module ('customerScheduler')
 
-function _M:new(garage)
+function _M:new()
 	local o = {}
 	
-	o.garage = garage
-	
-	o.schedule = {}
+	o._schedule = {}
 
 	self.__index = self
 	
@@ -31,7 +29,7 @@ local function randomDateInFuture(gt)
 
 	-- to do generate a future date based on some formula
 	local oneDay = 60 * 60 * 24	
-	aptTime:setSeconds(gt.seconds + oneDay)
+	aptTime:seconds(gt:seconds() + oneDay)
 	
 	return aptTime
 end
@@ -39,8 +37,8 @@ end
 -- generates a new customer
 local function generateNewCustomer(gt)
 	local customer = customerFactory.newCustomer(gt)
-	customer.vehicle = vehicleFactory.newVehicle(customer, gt)
-	problemFactory.addProblems(customer.vehicle, gt)
+	local vehicle = vehicleFactory.newVehicle(customer, gt)
+	problemFactory.addProblems(vehicle, gt)	
 	
 	return customer
 end
@@ -50,58 +48,53 @@ end
 
 -- creates an appointment for the provided customer and time
 function _M:createAppointment(customer, gt)
-	local apt = appointment:new()						
-	apt.time = { gt }
-	customer.appointment = apt			
-	apt.customer = customer		
-	self.schedule[apt] = apt
+	local apt = appointment:new(customer)		
+	apt:addVisit(gt)	
+	self._schedule[apt] = apt
 end
 
 -- returns the schedule of visits for that day
 -- in time order
-function _M:getNextDay(gt)			
+function _M:getNextDay(garage, gt)		
+	local gameDate = gt:date()
+	
 	-- clean out any old appointemnts
-	for k, apt in pairs(self.schedule) do
-		if  gt.date.year > apt.time[1].date.year or
-			gt.date.month > apt.time[1].date.month or
-			gt.date.day > apt.time[1].date.day then
+	for k, apt in pairs(self._schedule) do
+		local firstVisitDate = apt:visit(1):date()
+		if  gameDate.year > firstVisitDate.year or
+			gameDate.month > firstVisitDate.month or
+			gameDate.day > firstVisitDate.day then
 			
-			self.schedule[k] = nil
+			self._schedule[k] = nil
 		end
 	end
 	
 	-- create new appointments and add them to the schedule
-	self:scheduleDaysCustomers(gt)
+	self:scheduleDaysCustomers(garage, gt)
 	
 	-- return the appointments for this day
 	local schedule = {}	
-	for k, apt in pairs(self.schedule) do
-		if gt.date.day == apt.time[1].date.day and
-			gt.date.month == apt.time[1].date.month and
-			gt.date.year == apt.time[1].date.year then
+	for k, apt in pairs(self._schedule) do
+		local firstVisitDate = apt:visit(1):date()		
+		if gameDate.day == firstVisitDate.day and
+			gameDate.month == firstVisitDate.month and
+			gameDate.year == firstVisitDate.year then
 			
 			schedule[#schedule + 1] = apt			
 		end	
 	end		
 	
-	table.sort(schedule, 
-		function(a, b) 
-			return a.time[1].seconds < b.time[1].seconds 
-		end)		
+	table.sort(schedule, appointment.timeOfFirstVisitSorter)
 	
 	return schedule
 end
 
 -- schedules the new customers for that day
-function _M:scheduleDaysCustomers(gt)	
-	local d = { 
-		year = gt.date.year, 
-		month = gt.date.month,
-		day = gt.date.day,
-		hour = self.garage.openingHour,
-		min = 0,
-		sec = 0
-	}
+function _M:scheduleDaysCustomers(garage, gt)	
+	local d = gt:date()
+	d.hour = garage:openingHour()
+	d.min = 0
+	d.sec = 0
 	
 	-- check every minute to see if a new customer should arrive
 	repeat 
@@ -117,9 +110,9 @@ function _M:scheduleDaysCustomers(gt)
 		end
 		local value = math.random(1, randomRange)
 		
-		if value <= self.garage.reputation then		
+		if value <= garage:reputation() then		
 			local aptTime = gameTime:new()
-			aptTime:setSeconds(os.time(d))
+			aptTime:setTime(d)
 			
 			local customer = generateNewCustomer(gt)
 			self:createAppointment(customer, aptTime)
@@ -135,7 +128,7 @@ function _M:scheduleDaysCustomers(gt)
 				d.hour = d.hour + 1
 			end			
 		end
-	until d.hour >= self.garage.closingHour
+	until d.hour >= garage:closingHour()
 end
 
 -- schedules a customer to come back at a certain time
@@ -147,7 +140,7 @@ function _M:scheduleComeBack(apt, gt)
 	-- the customer will actually return
 	-- could be based on customer stats
 	
-	table.insert(apt.time,  gt)
+	apt:addVisit(gt)
 end
 
 -- schedules an existing customer at some time in the future
@@ -158,7 +151,7 @@ function _M:addExistingCustomerToScheduleFuture(customer, gt)
 	-- to do decide if the customer whould have a new vehicle when they come back
 	-- to do decide if the customers stats should change the next time they come back	
 	
-	problemFactory.addProblems(customer.vehicle, aptTime)	
+	problemFactory.addProblems(customer:vehicle(), aptTime)	
 	self:createAppointment(customer, aptTime)
 end
 

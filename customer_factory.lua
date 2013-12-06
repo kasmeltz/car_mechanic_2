@@ -93,32 +93,29 @@ end
 ]]
 
 function newCustomer(gt)
-	local gameDate = gt.date
-	
-	local value	
-	local o = customer:new()
-
+	local value		
 	local statRanges = {
 		{ 0, 100, 0, 100, 0, 100 }
 	}
 	
-	o.readStats = {}
+	local gameDate = gt:date()	
+	local c = customer:new()		
 	
 	-- sex 
 	value = math.random(1, #sexes)
-	o.sex = sexes[value]
+	local sex = sexes[value]
 	
-	for k, v in ipairs(o.sex.stats) do
+	for k, v in ipairs(sex.stats) do
 		statRanges[k] = v
 	end
 
 	-- first name
-	if o.sex.name == 'Male' then
+	if sex.name == 'Male' then
 		value = math.random(1, #maleFirstNames)
-		o.firstName = maleFirstNames[value]
+		c:firstName(maleFirstNames[value])
 	else
 		value = math.random(1, #femaleFirstNames)
-		o.firstName = femaleFirstNames[value]
+		c:firstName(femaleFirstNames[value])
 	end
 	
 	-- ethnicity
@@ -128,22 +125,20 @@ function newCustomer(gt)
 		statRanges[k] = statRanges[k] + v
 	end
 	
-	o.ethnicity = ethnicity	
-
 	-- last name
 	value = math.random(1, #lastNames[ethnicity.name])
-	o.lastName = lastNames[ethnicity.name][value]
+	c:lastName(lastNames[ethnicity.name][value])
 		
 	-- face
-	o.face = { }
+	local face = { }
 	
-	o.face.shape = math.random(1, 6)
-	o.face.eyes = math.random(1, 6)
-	o.face.ears = math.random(1, 6)
-	o.face.nose = math.random(1, 6)
-	o.face.mouth = math.random(1, 6)
-	o.face.hair = math.random(1, 6)
-	o.face.facialhair = math.random(1, 6)
+	face.shape = math.random(1, 6)
+	face.eyes = math.random(1, 6)
+	face.ears = math.random(1, 6)
+	face.nose = math.random(1, 6)
+	face.mouth = math.random(1, 6)
+	face.hair = math.random(1, 6)
+	face.facialhair = math.random(1, 6)
 	
 	-- age
 	local ageRange = rf.getItem(ageRanges)	
@@ -154,22 +149,28 @@ function newCustomer(gt)
 	
 	local age = math.random(ageRange.range[1], ageRange.range[2])		
 	
-	o.birthYear = gameDate.year - age
+	c:birthYear(gameDate.year - age)
 	
 	-- stats
 	for i = 1, #statRanges, 2 do
 		statRanges[i] = math.max(statRanges[i], 0)
 		statRanges[i + 1] = math.min(statRanges[i + 1], 100)
+		statRanges[i + 1] = math.max(statRanges[i + 1], statRanges[i] + 1)
 	end
 	
-	o.realStats = {}
+	local realStats = {}
 	
 	for i = 1, #statRanges, 2 do
 		local stat = math.random(statRanges[i] , statRanges[i + 1])
-		table.insert(o.realStats, stat)
+		table.insert(realStats, stat)
 	end	
 	
-	return o
+	c:sex(sex)
+	c:ethnicity(ethnicity)
+	c:face(face)
+	c:realStats(realStats)
+	
+	return c
 end
 
 -- returns the age range for a person

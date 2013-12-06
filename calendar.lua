@@ -17,10 +17,10 @@ holidays =
 }
 
 -- returns a new calendar object
-function _M:new(garage)
+function _M:new(world)
 	local o = {}
 	
-	o.garage = garage
+	o._world = world
 
 	self.__index = self
 	
@@ -29,8 +29,10 @@ end
 
 -- returns the holiday for the given date, if one exists
 function _M:holiday(gt)
+	local gameDate = gt:date()
+	
 	for _, hol in ipairs(holidays) do
-		if gt.date.month == hol.month and gt.date.day == hol.day then
+		if gameDate.month == hol.month and gameDate.day == hol.day then
 			return hol
 		end
 	end

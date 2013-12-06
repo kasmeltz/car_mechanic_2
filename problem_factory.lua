@@ -1,5 +1,7 @@
 local	table, pairs, string, ipairs, math, love =
 		table, pairs, string, ipairs, math, love
+
+local problem = require 'problem'
 		
 module('problemFactory')
 
@@ -48,7 +50,7 @@ function addProblems(vehicle, gt)
 	local distributionIndex = nil
 		
 	for i, di in ipairs(problemDistributions) do
-		if vehicle.kms > di.range[1] and vehicle.kms < di.range[2] then
+		if vehicle:kms() > di.range[1] and vehicle:kms() < di.range[2] then
 			distribution = di
 			distributionIndex = i
 			break
@@ -74,12 +76,8 @@ function addProblems(vehicle, gt)
 	
 	local usedProblems = {}
 	
-	if not vehicle.problems then
-		vehicle.problems = {}
-	else
-		for _, pr in pairs(vehicle.problems) do
-			usedProblems[pr] = true
-		end
+	for _, pr in pairs(vehicle:problems()) do
+		usedProblems[pr] = true
 	end
 	
 	for i = 1, problemCount do		
@@ -92,22 +90,22 @@ function addProblems(vehicle, gt)
 			end		
 		end
 			
-		local problem = {}
+		local p = problem:new(vehicle)
 		value = math.random(1, fr)
 		
 		fr = 0	
 		for _, pt in ipairs(possibleProblems) do
 			fr = fr + pt.frequency[distributionIndex]
 			if value <= fr then
-				problem.realProblem = pt
+				p:realProblem(pt)
 				break
 			end
 		end
 		
-		problem.time = gt		
+		p:time(gt)
 	
-		usedProblems[problem.realProblem] = true
-		table.insert(vehicle.problems, problem)
+		usedProblems[p:realProblem()] = true
+		vehicle:addProblem(p)
 	end	
 end
 

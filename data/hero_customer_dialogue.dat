@@ -67,36 +67,36 @@ return
 		options = 
 		{
 			{
-				condition = function() return customer.vehicle.problems[1].realProblem.category == 'maintenance' end,
-				line = function() return 'My ' .. customer.vehicle.type:lower() .. ' ' .. customer.vehicle.problems[1].realProblem.symptoms[1] .. '.' end,
+				condition = function() return vehicle:problem(1):realProblem().category == 'maintenance' end,
+				line = function() return 'My ' .. vehicle:vehicleType() .. ' ' .. vehicle:problem(1):realProblem().symptoms[1] .. '.' end,
 				next = function() return  'hero_respond_problem' end
 			},
 			{
 				condition = function() return math.random(1, 100) <= 25 end,
-				line = function() return 'I think that my ' .. customer.vehicle.type:lower() .. ' has ' .. customer.vehicle.problems[1].realProblem.name .. '.' end,
+				line = function() return 'I think that my ' .. vehicle:vehicleType() .. ' has ' .. vehicle:problem(1):realProblem().name .. '.' end,
 				next = function() return  'hero_respond_problem' end
 			},
 			{
-				condition = function() return #customer.vehicle.problems == 1 end,
+				condition = function() return #vehicle:problems() == 1 end,
 				line = function() 
-					local s1 = math.random(1, #customer.vehicle.problems[1].realProblem.symptoms)
-					return 'I don\'t know exactly what\'s wrong with my ' .. customer.vehicle.type:lower() .. ', but ' .. customer.vehicle.problems[1].realProblem.symptoms[s1] .. '.' end,
+					local s1 = math.random(1, #vehicle:problem(1):realProblem().symptoms)
+					return 'I don\'t know exactly what\'s wrong with my ' .. vehicle:vehicleType() .. ', but ' .. vehicle:problem(1):realProblem().symptoms[s1] .. '.' end,
 				next = function() return  'hero_respond_problem' end
 			},
 			{
-				condition = function() return #customer.vehicle.problems > 1 and math.random(1, 100) < 50 end,
+				condition = function() return #vehicle:problems() > 1 and math.random(1, 100) < 50 end,
 				line = function() 
-					local s1 = math.random(1, #customer.vehicle.problems[1].realProblem.symptoms)
-					return 'I don\'t know exactly what\'s wrong with my ' .. customer.vehicle.type:lower() .. ', but ' .. customer.vehicle.problems[1].realProblem.symptoms[s1] .. '.' end,
+					local s1 = math.random(1, #vehicle:problem(1):realProblem().symptoms)
+					return 'I don\'t know exactly what\'s wrong with my ' .. vehicle:vehicleType() .. ', but ' .. vehicle:problem(1):realProblem().symptoms[s1] .. '.' end,
 				next = function() return  'hero_respond_problem' end
 			},	
 			{
-				condition = function() return #customer.vehicle.problems >= 2 end,
+				condition = function() return #vehicle:problems() >= 2 end,
 				line = function() 
-					local s1 = math.random(1, #customer.vehicle.problems[1].realProblem.symptoms)
-					local s2 = math.random(1, #customer.vehicle.problems[2].realProblem.symptoms)
-					return 'I don\'t know exactly what\'s wrong with my ' .. customer.vehicle.type:lower() .. ', but ' .. customer.vehicle.problems[1].realProblem.symptoms[s1] .. 
-						', and ' .. customer.vehicle.problems[2].realProblem.symptoms[s2] end,
+					local s1 = math.random(1, #vehicle:problem(1):realProblem().symptoms)
+					local s2 = math.random(1, #vehicle:problem(2):realProblem().symptoms)
+					return 'I don\'t know exactly what\'s wrong with my ' .. vehicle:vehicleType() .. ', but ' .. vehicle:problem(1):realProblem().symptoms[s1] .. 
+						', and ' .. vehicle:problem(2):realProblem().symptoms[s2] end,
 				next = function() return  'hero_respond_problem' end
 			},				
 		}
@@ -108,7 +108,7 @@ return
 		options =
 		{
 			{
-				line = function() return 'I think we can help you with that. When do you need your ' .. customer.vehicle.type:lower() .. ' back?' end,
+				line = function() return 'I think we can help you with that. When do you need your ' .. vehicle:vehicleType() .. ' back?' end,
 				next = function() return 'cust_when_required' end
 			},
 			{
@@ -145,14 +145,14 @@ return
 		options =
 		{
 			{
-				condition = function() return hero:communicationLevel() > 50 end,
+				condition = function() return hero:communicationLevel() > 0 end,
 				line = function() return 'I understand that it\'s frustrating that you drove all the way here and we couldn\'t help you so now you have to find somewhere else. I wish we could help but we just don\'t have the equpiment or expertise to help with what you need.' end,
 				next = function() return 'cust_unable_to_help_understood' end
 			},
 			{
 				line = function() return 'Hey, we\'re a small shop we can\'t do everything around here.' end,
 				onChoose = function() 
-					customer:happinessInc(-50)
+					customer:angerInc(50)
 					apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) 
 				end,
 				next = function() return '' end
@@ -168,7 +168,7 @@ return
 				line = function() return 'I understand, you can\'t do everyhing, right? Thanks anyways.' end,
 				onChoose = function() 
 					hero:skillPointsInc(1)
-					customer:happinessInc(50)
+					customer:angerInc(-50)
 					apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) 
 				end,
 				next = function() return '' end
@@ -182,7 +182,7 @@ return
 		{
 			{
 				-- to do should this be based on a feature of the customer rather than just random?
-				condition = function() return math.random(1, 100) < 100 end,
+				condition = function() return math.random(1, 100) < 50 end,
 				line = function() return 'It\s not super urgent so yes I could possible come back later. When could I have it looked at?' end,
 				next = function() return 'hero_when_available' end
 			},
@@ -195,14 +195,13 @@ return
 	},
 	hero_when_available = 
 	{
-		onStart = function() garage:showCalendar() end,
 		actor = 'h',
 		options =
 		{
 			{
 				line = function() return 'Let me check my computer to see when we could have a look at it.' end,
 				next = function() return 'hero_suggest_come_back' end,
-				onChoose = function() garage:showCalendar() end
+				onChoose = function() world:showCalendar() end
 			}
 		}
 	},
@@ -212,7 +211,7 @@ return
 		options =
 		{
 			{
-				line = function() return 'What about ' .. calendar:proposedAppointmentTime(worldTime, garage.currentAptTime) .. '?' end,
+				line = function() return 'What about ' .. calendar:proposedAppointmentTime(worldTime, world:selectedAppointmentTime()) .. '?' end,
 				next = function() return 'cust_decide_come_back' end
 			}
 		}
@@ -223,7 +222,7 @@ return
 		options =
 		{
 			{
-				condition = function() return customer:acceptAppointment(worldTime, garage.currentAptTime) end,
+				condition = function() return customer:acceptAppointment(worldTime, world:selectedAppointmentTime()) end,
 				line = function() return 'Sure that time will work for me. I\'ll come back then.' end,
 				next = function() return 'hero_yes_come_back' end
 			},
@@ -242,7 +241,7 @@ return
 			{
 				line = function() return 'Excellent we will see you then!' end,
 				next = function() return '' end,
-				onChoose = function() scheduler:scheduleComeBack(appointment, garage.currentAptTime) end
+				onChoose = function() scheduler:scheduleComeBack(appointment, world:selectedAppointmentTime()) end
 			}
 		}
 	},
@@ -269,7 +268,7 @@ return
 			{
 				line = function() return 'I don\'t think we can have it ready by then. Let me check and see when I could have it ready for you...' end,
 				next = function() return 'hero_suggest_finish_time' end,
-				onChoose = function() garage:showCalendar() end
+				onChoose = function() world:showCalendar() end
 			}
 		}
 	},
@@ -279,7 +278,7 @@ return
 		options =
 		{
 			{
-				line = function() return 'What about ' .. calendar:proposedAppointmentTime(worldTime, garage.currentAptTime) .. '?' end,
+				line = function() return 'What about ' .. calendar:proposedAppointmentTime(worldTime, world:selectedAppointmentTime()) .. '?' end,
 				next = function() return 'customer_accept_finish_time' end
 			}
 		}
@@ -329,9 +328,9 @@ return
 		options =
 		{
 			{
-				line = function() return 'All right ' .. customer.firstName .. ', if I can just have your keys, we will get started on that right away for you.' end,
+				line = function() return 'All right ' .. customer:firstName() .. ', if I can just have your keys, we will get started on that right away for you.' end,
 				next = function() return '' end,
-				onChoose = function() garage:acceptVehicle(appointment) end
+				onChoose = function() world:acceptVehicle(appointment) end
 			}
 		}
 	}
