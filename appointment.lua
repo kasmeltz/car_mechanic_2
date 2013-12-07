@@ -73,4 +73,9 @@ function _M:arrive(gt)
 	self._customer:arrive(gt)
 end
 
+-- 
+function _M:arrivals()
+	return self._arrivals
+end
+
 return _M

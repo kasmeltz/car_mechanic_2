@@ -11,3 +11,11 @@ function table.tonumber(t)
 	
 	return t
 end
+
+function table.removeObject(t, o)
+	for k, v in ipairs(t) do
+		if v == o then
+			table.remove(t, k)
+		end
+	end
+end

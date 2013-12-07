@@ -1,16 +1,4 @@
---[[
-local hero = require('hero')
-local appointmentResolver = require('appointment_resolver')
-local customerScheduler = require('customer_scheduler')
-local calendar = require('calendar')
-local customer = require('customer')
-local gameTime = require('gameTime')
-local dialogueFactory = require ('dialogue_factory')
-local portraitVisualizer = require ('portrait_visualizer')
-local dialogueVisualizer = require ('dialogue_visualizer')
-local customerSkillVisualizer = require ('customer_skill_visualizer')
-local vehicleDetailVisualizer = require ('vehicle_detail_visualizer')
-]]
+require 'table_ext'
 
 local 	os, setmetatable, ipairs, table, pairs, love =
 		os, setmetatable, ipairs, table, pairs, love
@@ -49,6 +37,12 @@ end
 function _M:parkingSpots()
 	return self._parkingSpots
 end
+
+--
+function _M:workingBays()
+	return self._workingBays
+end
+
 
 --
 function _M:reputation(r)
@@ -103,6 +97,43 @@ function _M:reputationInc(v)
 	if self.onReputationInc then	
 		self.onReputationInc(v, self._reputation)
 	end	
+end
+
+--
+function _M:parkingLot(v)
+	return self._parkingSpots[v]
+end
+
+--
+function _M:parkVehicle(v)	
+	-- to do
+	-- what to do if you don't actually have space for the vehicle
+	if #self._parkingSpots >= self._parkingCapacity then
+		return false
+	else
+		table.insert(self._parkingSpots, v)		
+		return true
+	end
+end
+
+--
+function _M:unParkVehicle(v)	
+	table.removeObject(self._parkingSpots, v)	
+end
+
+--
+function _M:enterBay(v)
+	if #self._workingBays >= self._workingBayCapacity then
+		return false
+	else
+		table.insert(self._workingBays, v)
+	end
+end
+
+
+--
+function _M:leaveBay(v)
+	table.removeObject(self._workingBays, v)	
 end
 
 return _M

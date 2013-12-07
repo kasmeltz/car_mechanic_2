@@ -12,8 +12,8 @@ local vehicleDetailVisualizer = require ('vehicle_detail_visualizer')
 local gameWorldVisualizer = require 'game_world_visualizer'
 local garage = require 'garage'
 
-local 	setmetatable, ipairs, table, pairs, love =
-		setmetatable, ipairs, table, pairs, love
+local 	setmetatable, ipairs, table, pairs, love, tostring, print =
+		setmetatable, ipairs, table, pairs, love, tostring, print
 		
 module ('gameWorld')
 
@@ -109,8 +109,35 @@ function _M:currentAppointment(a)
 	self._currentAppointment = a
 end
 
+-- 
+function _M:setStartingDialogue(apt, d)
+	local customer = apt:customer()
+	local vehicle = customer:vehicle()
+	
+	if #apt:visits() == 1 then
+		d:setDialogue('first_contact_start')
+	else
+		if vehicle:isOnPremises() then
+			d:setDialogue('return_for_vehicle_start')
+		else
+			d:setDialogue('return_for_appt_start')
+		end
+	end		
+end
+
+--
+function _M:debugApptDetails(msg, apt)
+	print('--- ' .. msg .. ' ----------')
+	print(apt:customer():name())
+	print('visits: ' .. #apt:visits())
+	print('arriavls: ' .. #apt:arrivals())
+	print('hasArrivedForLatestVisit: ' .. tostring(apt:hasArrivedForLatestVisit()))
+end
+
 --
 function _M:startTalkingCustomer(apt)
+	self:debugApptDetails('startTalkingCustomer', apt)
+	
 	local sw = love.graphics:getWidth()
 	local sh = love.graphics:getHeight()
 	local pw = 100
@@ -120,8 +147,8 @@ function _M:startTalkingCustomer(apt)
 	
 	self._worldTime:rate(3)		
 	
-	local d = dialogueFactory.newCustomerDialogue(self, apt)	
-	d:setDialogue('first_contact_start')
+	local d = dialogueFactory.newCustomerDialogue(self, apt)
+	self:setStartingDialogue(apt, d)	
 	
 	local dialogueVisualizer = dialogueVisualizer:new(d)
 
@@ -160,6 +187,8 @@ end
 
 --
 function _M:stopTalkingCustomer(apt)
+	self:debugApptDetails('stopTalkingCustomer', apt)
+				
 	apt:customer():isOnPremises(false)
 	
 	self._visualizer:removeOverlay(self._heroPortrait)
@@ -188,17 +217,21 @@ function _M:selectedAppointmentTime()
 end
 
 --
+function _M:releaseVehicle(apt)
+	local vehicle = apt:customer():vehicle()	
+	self._garage:unParkVehicle(vehicle)
+	self._garage:leaveBay(vehicle)
+	vehicle:isOnPremises(false)		
+end
+
+--
 function _M:acceptVehicle(apt)
-	local parkingCapacity = self._garage:parkingCapacity()
-	local parkingSpots = self._garage:parkingSpots()
-	
-	-- to do
-	-- what to do if you don't actually have space for the vehicle
-	if #parkingSpots >= parkingCapacity then
+	local vehicle = apt:customer():vehicle()	
+	if self._garage:parkVehicle(vehicle) then	
 	else
-		table.insert(parkingSpots, apt:customer():vehicle())
-		self._scheduler:scheduleComeBack(apt, apt:customer():pickUpTime())
 	end
+	vehicle:isOnPremises(true)		
+	self._scheduler:scheduleComeBack(apt, apt:customer():pickUpTime())
 end
 
 --
@@ -256,7 +289,9 @@ function _M:update(dt)
 		if not apt:hasArrivedForLatestVisit() and #apt:visits() > 1 then
 			local visit = apt:latestVisit()
 			if worldTime:isAfterOrSame(visit) then
+				self:debugApptDetails('before', apt)
 				self:arriveAppointment(apt)
+				self:debugApptDetails('after', apt)
 			end
 		end
 		
@@ -284,9 +319,9 @@ end
 -- called when a key is released (event)
 function _M:keyreleased(key)
 	-- key presses that shouldn't be blocked
-	if key == 'f1' then
-		self:showVehicleDetails(1)
-	end
+	--if key == 'f1' then
+--		self:showVehicleDetails(1)
+--	end
 	
 	-- key presses of visualizer
 	local blockKeys = self._visualizer:keyreleased(key)
@@ -301,6 +336,12 @@ function _M:keyreleased(key)
 		self._worldTime:incrementRate(-1)
 	end
 
+	if key == '1' then
+		local v = self._garage:parkingLot(1)
+		self._garage:unParkVehicle(v)
+		self._garage:enterBay(v)
+	end
+		
 	--[[		
 	elseif key == 'c' then
 		if self.currentApt and self.currentApt.customer.interviewed then	

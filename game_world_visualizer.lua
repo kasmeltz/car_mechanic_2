@@ -1,3 +1,5 @@
+require 'table_ext'
+
 local 	os, setmetatable, ipairs, table, pairs, love =
 		os, setmetatable, ipairs, table, pairs, love
 		
@@ -23,11 +25,7 @@ end
 
 --
 function _M:removeOverlay(ov)
-	for k, v in ipairs(self._overlays) do
-		if v == ov then
-			table.remove(self._overlays, k)
-		end
-	end
+	table.removeObject(self._overlays, ov)
 end
 
 --
@@ -56,6 +54,7 @@ function _M:draw(dt)
 	local holiday = world:holiday()
 	local garage = world:garage()
 	local parkingSpots = garage:parkingSpots()
+	local workingBays = garage:workingBays()
 	
 	local sw = love.graphics:getWidth()
 	local sh = love.graphics:getHeight()
@@ -90,6 +89,22 @@ function _M:draw(dt)
 	end
 	
 	sy = sy + 20
+	
+	love.graphics.print('Working bays occupied: ' .. #workingBays ,0, sy)
+	
+	sy = sy + 20
+	
+	for _, v in ipairs(workingBays) do
+		local c = v:customer()
+		local a = c:appointment()
+		
+		love.graphics.print(c:name() .. '->' .. v:year() .. ' ' .. 
+			v:vehicleType() .. ' ' .. 
+			v:kms() .. ' kms -> Due by: ' .. a:latestVisit():tostring(), 0, sy)	
+		sy = sy + 20
+	end
+	
+	sy = sy + 20	
 	
 	--[[
 	for k, apt in ipairs(world:unresolvedAppointements()) do

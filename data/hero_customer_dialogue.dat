@@ -24,7 +24,8 @@ return
 		{
 			{
 				line = function() return 'Screw you too I\'m leaving!' end,
-				next = function() return '' end
+				next = function() return '' end,
+				onChoose = function() apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) end
 			}
 		}
 	},
@@ -182,7 +183,7 @@ return
 		{
 			{
 				-- to do should this be based on a feature of the customer rather than just random?
-				condition = function() return math.random(1, 100) < 50 end,
+				condition = function() return math.random(1, 100) < 100 end,
 				line = function() return 'It\s not super urgent so yes I could possible come back later. When could I have it looked at?' end,
 				next = function() return 'hero_when_available' end
 			},
@@ -239,7 +240,29 @@ return
 		options =
 		{
 			{
-				line = function() return 'Excellent we will see you then!' end,
+				line = function() return 'Ok great. Can I get your name so that we can keep track of the appointment?' end,
+				next = function() return 'cust_give_name_appt' end,
+			}
+		}
+	},
+	cust_give_name_appt = 
+	{
+		actor = 'c',
+		options =
+		{
+			{
+				line = function() customer:nameRevealed(true) return 'Yes of course, my name is ' .. customer:name() .. '.' end,
+				next = function() return 'hero_see_you_appt' end,
+			}
+		}
+	},
+	hero_see_you_appt = 
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'Excellent, ' .. customer:firstName() .. '! The name\'s ' .. hero:firstName() .. '. Nice to meet you. We will see you later.' end,
 				next = function() return '' end,
 				onChoose = function() scheduler:scheduleComeBack(appointment, world:selectedAppointmentTime()) end
 			}
@@ -263,7 +286,7 @@ return
 		{
 			{
 				line = function() return 'I think we can have it back to you by that time.' end,
-				next = function() return 'hero_accept_vehicle' end
+				next = function() return 'hero_get_name' end
 			},
 			{
 				line = function() return 'I don\'t think we can have it ready by then. Let me check and see when I could have it ready for you...' end,
@@ -291,7 +314,7 @@ return
 			{
 				condition = function() return customer:acceptFinishTime(worldTime, garage.currentAptTime) end,
 				line = function() return 'Sure I can wait until then to pick it up.' end,
-				next = function() return 'hero_accept_vehicle' end
+				next = function() return 'hero_get_name' end
 			},
 			{
 				line = function() return 'I\'m sorry the problem is a little more urgent than that, and I need it to be finished sooner. Maybe next time!' end,
@@ -300,12 +323,18 @@ return
 			}
 		}
 	},
-	hero_accept_vehicle =
+	hero_get_name =
 	{
 		actor = 'h',
 		options =
 		{
 			{
+				condition = function() return customer:nameRevealed() end,
+				line = function() return 'Alright ' .. customer:firstName() end,
+				next = function() return 'hero_ask_for_keys' end
+			},
+			{
+				condition = function() return not customer:nameRevealed() end,
 				line = function() return 'What\'s your name?' end,
 				next = function() return 'customer_give_name' end
 			}
@@ -317,7 +346,18 @@ return
 		options =
 		{
 			{
-				line = function() customer:revealName() return customer:name() end,
+				line = function() customer:nameRevealed(true) return customer:name() end,
+				next = function() return 'hero_reflect_name' end
+			}
+		}
+	},
+	hero_reflect_name =
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'Alright ' .. customer:name() .. ', the name\'s ' .. hero:firstName() .. '. Nice to meet you.' end,
 				next = function() return 'hero_ask_for_keys' end
 			}
 		}
@@ -328,10 +368,84 @@ return
 		options =
 		{
 			{
-				line = function() return 'All right ' .. customer:firstName() .. ', if I can just have your keys, we will get started on that right away for you.' end,
+				line = function() return 'If I can just have your keys, we will get started on that right away for you.' end,
 				next = function() return '' end,
 				onChoose = function() world:acceptVehicle(appointment) end
 			}
 		}
-	}
+	},
+	return_for_appt_start =
+	{
+		actor = 'h', 
+		options = 
+		{
+			{
+				line = function() return 'Good ' .. worldTime:timeOfDay() .. ' ' .. customer:firstName() .. ', welcome back.' end,
+				next = function() return 'cust_return_appt' end
+			}
+		},		
+	},
+	cust_return_appt =
+	{
+		actor = 'c', 
+		options = 
+		{
+			{
+				line = function() return 'Hi. I have an appointment scheduled for my ' .. vehicle:vehicleType() .. '. The name\'s ' .. customer:name() .. '.' end,
+				next = function() return 'hero_return_appt' end
+			}
+		},		
+	},
+	hero_return_appt =
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'Ok we\'re ready to help you. When do you need your ' .. vehicle:vehicleType() .. ' back?' end,
+				next = function() return 'cust_when_required' end
+			},
+			{
+				line = function() return 'I\'m sorry but we accidentally double booked you and we can\'t look at it at thhis very moment.' end,
+				next = function() return '' end
+			}
+		}
+	},
+	return_for_vehicle_start =
+	{
+		actor = 'h', 
+		options = 
+		{
+			{
+				line = function() return 'Good ' .. worldTime:timeOfDay() .. ' ' .. customer:firstName() .. ', welcome back.' end,
+				next = function() return 'cust_return_vehicle' end
+			}
+		},		
+	},	
+	cust_return_vehicle =
+	{
+		actor = 'c', 
+		options = 
+		{
+			{
+				line = function() return 'Hi ' .. hero:firstName() .. ', I\' here for my ' .. vehicle:vehicleType() .. '.' end,
+				next = function() return 'hero_vehicle_ready' end
+			}
+		},		
+	},
+	hero_vehicle_ready =
+	{
+		actor = 'h', 
+		options = 
+		{
+			{
+				line = function() return 'Here it is!' end,
+				next = function() return '' end,
+				onChoose = function() 
+						apptResolverInstance:resolveAppt(appointment, appointmentResolver.PROBLEMS_FIXED)
+						world:releaseVehicle(vehicle)
+					end
+			}
+		},		
+	},	
 }

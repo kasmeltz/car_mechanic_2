@@ -84,9 +84,9 @@ function _M:resolveAppt(apt, reason)
 		comeBackChance = 75
 		referralChance = 50
 	else 
+		garage:reputationInc(150)
 		comeBackChance = 90
-		referralChance = 75
-		garage:reputationInc(150)	
+		referralChance = 75	
 	end
 	
 	local value = math.random(1, 100)

@@ -56,5 +56,12 @@ function _M:problem(v)
 	return self._problems[v]
 end
 
+--
+function _M:isOnPremises(v)
+	if v == nil then return self._isOnPremises end
+	self._isOnPremises = v
+end
+
+
 
 return _M

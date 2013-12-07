@@ -130,8 +130,9 @@ function _M:arrive(gt)
 end
 
 --
-function _M:revealName()
-	self._nameRevealed = true
+function _M:nameRevealed(v)
+	if not v then return self._nameRevealed end
+	self._nameRevealed = v
 end
 
 --
@@ -175,7 +176,7 @@ function _M:acceptAppointment(currentTime, aptTime)
 	-- figure out the logic behind a customer
 	-- accepting or refusing an appointment date
 	-- at some point in the future	
-	return math.random(1, 100) < 50 
+	return math.random(1, 100) < 100 
 end
 
 --
