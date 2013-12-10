@@ -1,15 +1,17 @@
-local hero = require('hero')
-local appointmentResolver = require('appointment_resolver')
-local customerScheduler = require('customer_scheduler')
-local calendar = require('calendar')
-local customer = require('customer')
-local gameTime = require('gameTime')
-local dialogueFactory = require ('dialogue_factory')
-local portraitVisualizer = require ('portrait_visualizer')
-local dialogueVisualizer = require ('dialogue_visualizer')
-local customerSkillVisualizer = require ('customer_skill_visualizer')
-local vehicleDetailVisualizer = require ('vehicle_detail_visualizer')
+local hero = require 'hero' 
+local appointmentResolver = require 'appointment_resolver'
+local customerScheduler = require 'customer_scheduler'
+local calendar = require 'calendar'
+local customer = require 'customer'
+local gameTime = require 'gameTime'
+local dialogueFactory = require 'dialogue_factory'
+local portraitVisualizer = require 'portrait_visualizer'
+local dialogueVisualizer = require 'dialogue_visualizer'
+local customerSkillVisualizer = require 'customer_skill_visualizer'
+local vehicleDetailVisualizer = require 'vehicle_detail_visualizer'
 local gameWorldVisualizer = require 'game_world_visualizer'
+local messageVisualizer = require 'message_visualizer'
+local calendarVisualizer = require 'calendar_visualizer'
 local garage = require 'garage'
 
 local 	setmetatable, ipairs, table, pairs, love, tostring, print =
@@ -50,6 +52,17 @@ function _M:startNew()
 	self._unresolvedAppointements = {}	
 		
 	self._daysSchedule = self._scheduler:getNextDay(self._garage, self._worldTime)
+	
+	self._garage.onReputationInc = function(delta, value)
+		local msg
+		if delta < 0 then
+			msg = 'Your garage\'s reputation has dropped by: ' .. delta
+		else
+			msg = 'Your garage\'s reputation has risen by: ' .. delta
+		end
+		
+		self:popUpTextDialog(msg)
+	end	
 end
 
 --
@@ -205,10 +218,14 @@ end
 -- show the calendar for selecting an appointment time
 function _M:showCalendar()
 	self._selectedAppointmentTime = nil
-	local aptTime = gameTime:new()			
-	local oneHour = 60 * 60
-	aptTime:seconds(self._worldTime:seconds() + oneHour)
-	self._selectedAppointmentTime = aptTime
+	
+	local mv = calendarVisualizer:new(self._scheduler, self._calender, self._worldTime)	
+	self._visualizer:addOverlay(mv)
+	mv.onClose = 
+		function()
+			self._selectedAppointmentTime = mv:selectedTime()
+			self._visualizer:removeOverlay(mv)			
+		end
 end
 
 --
@@ -218,10 +235,15 @@ end
 
 --
 function _M:releaseVehicle(apt)
+	self._garage:bankAccountInc(1000)
+	
 	local vehicle = apt:customer():vehicle()	
 	self._garage:unParkVehicle(vehicle)
 	self._garage:leaveBay(vehicle)
-	vehicle:isOnPremises(false)		
+	vehicle:isOnPremises(false)			
+	
+	self._appointmentResolver:resolveAppt(apt, appointmentResolver.PROBLEMS_FIXED)
+	table.removeObject(self._unresolvedAppointements, apt)
 end
 
 --
@@ -235,13 +257,34 @@ function _M:acceptVehicle(apt)
 end
 
 --
+function _M:popUpTextDialog(msg, x, y, w, h)
+	local x = x or 50
+	local y = y or 50
+	local w = w or 400
+	local h = h or 100
+	
+	local mv = messageVisualizer:new(msg)
+	mv:position(x, y)
+	mv:size(w, h)
+	
+	self._visualizer:addOverlay(mv)
+	mv.onClose = 
+		function()
+			self._visualizer:removeOverlay(mv)
+		end
+end
+
+--
 function _M:update(dt)	
 	local worldTime = self._worldTime
 	local gameDate = worldTime:date()
 	local garage = self._garage
+	local hero = self._hero
 	
-	worldTime:update(dt)	
+	dt = worldTime:update(dt)	
+	
 	garage:update(dt)
+	hero:update(dt)
 	
 	if worldTime:dayAdvanced() then
 		self._holiday = self._calendar:holiday(worldTime)
@@ -296,10 +339,11 @@ function _M:update(dt)
 		end
 		
 		-- update customers who are on the premises
-		if apt:customer():isOnPremises() then		
+		local customer = apt:customer()
+		if customer:isOnPremises() then		
 			-- to do change once the customerFactory
 			-- returns an actual customer object
-			-- apt.customer:update(dt)
+			-- customer:update(dt)
 			
 			-- to do
 			-- if you don't interview the customer in a certain amount of time
@@ -319,17 +363,14 @@ end
 -- called when a key is released (event)
 function _M:keyreleased(key)
 	-- key presses that shouldn't be blocked
-	--if key == 'f1' then
---		self:showVehicleDetails(1)
---	end
-	
+
 	-- key presses of visualizer
 	local blockKeys = self._visualizer:keyreleased(key)
 	if blockKeys then
 		return
-	end		
+	end
 	
-	-- key presses that shouldn't be blocked
+	-- key presses that can be blocked by an overlay
 	if key == 'right' then
 		self._worldTime:incrementRate(1)
 	elseif key == 'left' then
@@ -338,27 +379,57 @@ function _M:keyreleased(key)
 
 	if key == '1' then
 		local v = self._garage:parkingLot(1)
-		self._garage:unParkVehicle(v)
-		self._garage:enterBay(v)
+		if v then
+			self._garage:unParkVehicle(v)
+			self._garage:enterBay(v)
+		end
+	end
+	
+	if key == '2' then
+		local v = self._garage:workingBay(1)
+		if v then
+			local problem = v:currentProblem()
+			if problem then
+				if not problem:currentDiagnosis():isFinished() then					
+					self._hero:startDiagnose(v)
+
+					v.onFinishDiagnosis = function(problem)	
+						self._worldTime:rate(3)				
+						self._hero:stopDiagnose(problem:vehicle())
+						problem:correctlyDiagnose()
+					end			
+					
+					self:popUpTextDialog('A problem was found!')
+				end
+			else
+				self:popUpTextDialog('No more problems have been found!')
+			end
+		end
 	end
 		
-	--[[		
-	elseif key == 'c' then
-		if self.currentApt and self.currentApt.customer.interviewed then	
-			local problems = self.currentApt.customer.vehicle.problems
-			for k, pr in ipairs(problems) do
-				pr.wasFixed = true
+	if key == '3' then
+		local v = self._garage:workingBay(1)
+		if v then	
+			local problem = v:currentProblem()		
+			if problem and problem:currentDiagnosis():isFinished() and
+				not problem:currentRepair():isFinished() then
+				
+				self._hero:startRepair(v)
+
+				v.onFinishRepair = function(problem)	
+					self._worldTime:rate(3)	
+					self._hero:stopRepair(problem:vehicle())
+				end			
 			end
-			
-			self.currentApt.customer.happiness = 300
-			
-			self.apptResolver:resolveAppt(self.currentApt, appointmentResolver.PROBLEMS_FIXED)
-						
-			table.remove(self.unresolvedAppointements, self.aptIndex)	
-			
-			self:stopTalkingCustomer()
 		end
-	]]
+	end
+	
+	if key == '4' then
+		local v = self._garage:workingBay(1)
+		if v then					
+			v:abandonCurrentProblem()
+		end
+	end
 end
 
 return _M

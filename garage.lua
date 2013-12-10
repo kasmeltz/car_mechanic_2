@@ -23,9 +23,21 @@ function _M:new(world)
 	o._workingBays = {}
 	o._parkingSpots = {}
 	
+	o._bankAccount = 0
+	
 	self.__index = self
 	
 	return setmetatable(o, self)
+end
+
+--
+function _M:bankAccount()
+	return self._bankAccount
+end
+
+--
+function _M:bankAccountInc(v)
+	self._bankAccount = self._bankAccount + v
 end
 
 --
@@ -130,10 +142,14 @@ function _M:enterBay(v)
 	end
 end
 
-
 --
 function _M:leaveBay(v)
 	table.removeObject(self._workingBays, v)	
+end
+
+--
+function _M:workingBay(v)
+	return self._workingBays[v]
 end
 
 return _M

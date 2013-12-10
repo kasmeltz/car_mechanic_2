@@ -58,9 +58,10 @@ end
 
 -- advances the game time
 function _M:update(dt)
-	self._seconds = self._seconds + 
-		dt * timeRates[self._timeRate].timeFactor
-		
+	local fdt = dt * timeRates[self._timeRate].timeFactor
+	
+	self._seconds = self._seconds + fdt
+	
 	self._date = os.date('*t', self._seconds)
 	
 	self._hourAdvaned = false
@@ -84,7 +85,9 @@ function _M:update(dt)
 		self._yearAdvanced = true
 	end
 	
-	self._oldDate = self._date		
+	self._oldDate = self._date	
+
+	return fdt
 end
 
 -- returns the current rate

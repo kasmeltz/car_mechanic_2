@@ -1,5 +1,5 @@
-local 	setmetatable, math =
-		setmetatable, math
+local 	setmetatable, math, ipairs, print =
+		setmetatable, math, ipairs, print
 		
 module('vehicle')
 
@@ -62,6 +62,73 @@ function _M:isOnPremises(v)
 	self._isOnPremises = v
 end
 
+--
+function _M:chooseCurrentProblem()
+	for k, problem in ipairs(self._problems) do
+		if not problem:isCorrectlyRepaired() then
+			return k
+		end
+	end
+	
+	return nil
+end
 
+--
+function _M:abandonCurrentProblem()
+	self._currentProblemIndex = nil
+end
+
+--
+function _M:currentProblem()
+	if not self._currentProblemIndex then
+		self._currentProblemIndex = self:chooseCurrentProblem()
+	end
+	
+	return self._problems[self._currentProblemIndex]
+end
+
+-- 
+function _M:updateDiagnosis(dt)
+	local problem = self:currentProblem()
+	
+	if problem then
+		local diagnosis = problem:currentDiagnosis()
+		if diagnosis and not diagnosis:isFinished() then
+			local result = diagnosis:update(dt)
+
+			if self.onUpdateDiagnosis then
+				self.onUpdateDiagnosis(problem)
+			end
+
+			if result then								
+				if self.onFinishDiagnosis then	
+					self.onFinishDiagnosis(problem)
+				end
+			end					
+		end		
+	end
+end
+
+-- 
+function _M:updateRepair(dt)
+	local problem = self:currentProblem()
+	
+	if problem then
+		local repair = problem:currentRepair()
+		if repair and not repair:isFinished() then				
+			local result = repair:update(dt)
+
+			if self.onUpdateRepair then
+				self.onUpdateRepair(problem)
+			end
+
+			if result then								
+				if self.onFinishRepair then	
+					self.onFinishRepair(problem)
+				end
+			end					
+		end		
+	end
+end
 
 return _M

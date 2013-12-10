@@ -39,7 +39,7 @@ function _M:resolveAppt(apt, reason)
 	-- track problems that haven't been fixed
 	local remainingProblems = {}
 	for k, pr in ipairs(problems) do
-		if not pr:isFixed() then
+		if not pr:isCorrectlyRepaired() then
 			table.insert(remainingProblems, pr)
 		end
 	end
@@ -73,7 +73,7 @@ function _M:resolveAppt(apt, reason)
 	elseif anger > 150 then
 		garage:reputationInc(-100)	
 		comeBackChance = 5	
-	elseif anger > 100 then
+	elseif anger > 100 then	
 		comeBackChance = 25			
 	elseif anger > 75 then
 		garage:reputationInc(50)	
@@ -98,6 +98,10 @@ function _M:resolveAppt(apt, reason)
 			world:scheduler():addNewCustomerToScheduleFuture(world:worldTime())
 		end
 	end
+	
+	-- to do
+	-- save this appointment to disk
+	--table.insert(self._resolvedApppointments, appt)
 end
 
 return _M

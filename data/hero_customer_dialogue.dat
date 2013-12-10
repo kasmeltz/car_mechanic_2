@@ -441,10 +441,7 @@ return
 			{
 				line = function() return 'Here it is!' end,
 				next = function() return '' end,
-				onChoose = function() 
-						apptResolverInstance:resolveAppt(appointment, appointmentResolver.PROBLEMS_FIXED)
-						world:releaseVehicle(vehicle)
-					end
+				onChoose = function() world:releaseVehicle(appointment) end
 			}
 		},		
 	},	

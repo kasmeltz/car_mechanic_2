@@ -118,3 +118,16 @@ The customer should have more stats that affect how he will react in certain sit
 go the customer's way.
 
 The customer should get more and more angry the more times they have to come back! (if you try to re-schedule them more than once, or if they come back and the vechile isn't ready and have to come back again... etc)
+
+To diagnose problems takes time. How long it takes to diagnose depends on the heros skill level in the problem area. 
+In the 2d world, the mechanic must be interacting with the car in order for the diagnosis bar to fill. 
+Owning and using certain tools can also help to speed up the diagnosis of certain problems. 
+A player uses a tool by grabbing it from wherever it is in the garage and bringing it to the vehicle and pressing some action button.
+The system will check all of the symptoms in the problem and check all other problems that share some of these symptoms.
+The problem may be incorrectly diagnosed.
+Once a problem is diagnosed correctly or incorrectly, the problem must be fixed. 
+Fixing a problem takes time, depending on the skill level of the mechanic in the problem area.
+Fixing a problem might also require parts which need to be ordered from a local part shop.
+Delivery of the parts will take time, and they might not even be in stock!
+The system will keep track of the cost of each part required for the job.
+Problems must have stats that tell how difficult or easy it is to diagnose.

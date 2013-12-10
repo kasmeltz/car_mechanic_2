@@ -1,5 +1,5 @@
-local 	setmetatable, print =
-		setmetatable, print
+local 	setmetatable =
+		setmetatable
 		
 module('appointment')
 

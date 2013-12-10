@@ -8,6 +8,7 @@ module('problemFactory')
 local problemTypes = {}
 local problemDistributions = {}
 
+--
 function initialize()
 	local data = {}
 	
@@ -41,6 +42,7 @@ function initialize()
 	end
 end
 
+--
 function addProblems(vehicle, gt)
 	local gameDate = gt.date
 	
@@ -91,6 +93,8 @@ function addProblems(vehicle, gt)
 		end
 			
 		local p = problem:new(vehicle)
+		p:newAttempt()
+		
 		value = math.random(1, fr)
 		
 		fr = 0	
@@ -107,6 +111,10 @@ function addProblems(vehicle, gt)
 		usedProblems[p:realProblem()] = true
 		vehicle:addProblem(p)
 	end	
+end
+
+--
+function assignMatchingProblemDescription()
 end
 
 return _M

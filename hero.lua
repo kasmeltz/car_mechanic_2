@@ -1,5 +1,5 @@
-local	setmetatable, math =
-		setmetatable, math
+local	setmetatable, math, print =
+		setmetatable, math, print
 		
 local personFactory = require 'customer_factory'
 
@@ -156,6 +156,51 @@ end
 function _M:age(gt)
 	local age = gt:date().year - self._birthYear	
 	return age
+end
+
+--
+function _M:startDiagnose(v)
+	self._focusedVehicle = v
+	self._diagnosing = true
+end
+
+--
+function _M:stopDiagnose(v)
+	self._diagnosing = false
+end
+
+-- 
+function _M:diagnose(v, dt)
+	v:updateDiagnosis(dt)
+end
+
+--
+function _M:startRepair(v)
+	self._focusedVehicle = v
+	self._repairing = true
+end
+
+--
+function _M:stopRepair(v)
+	self._repairing = false
+end
+
+-- 
+function _M:repair(v, dt)
+	v:updateRepair(dt)
+end
+
+--
+function _M:update(dt)	
+	if self._focusedVehicle then
+		if self._diagnosing == true then
+			self:diagnose(self._focusedVehicle, dt)
+		end
+		
+		if self._repairing == true then
+			self:repair(self._focusedVehicle, dt)
+		end
+	end
 end
 
 return _M
