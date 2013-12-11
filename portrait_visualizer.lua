@@ -1,12 +1,14 @@
 local customerFactory = require 'customer_factory'
 
-local	table, setmetatable, string, pairs, ipairs, io, love, math, print =	
-		table, setmetatable, string, pairs, ipairs, io, love, math, print
+local	table, string, pairs, ipairs, io, love, math, print =	
+		table, string, pairs, ipairs, io, love, math, print
+
+local overlay  = require 'overlay'
+local class = require 'class'
 
 module ('portraitVisualizer')
 
 local PORTRAIT_ROOT_FOLDER = 'images/portraits/'
-
 local imagePositions = {}
 
 ---
@@ -53,17 +55,15 @@ end
 
 --
 function _M:new(customer, gt)
-	local o = {}
+	local o = overlay:new()
 	
 	o._customer = customer	
 	o._gameTime = gt
-	o._position = { 0, 0 }
 	
 	loadImages(o)	
 	
-	self.__index = self
-	
-	return setmetatable(o, self)
+	self.__index = self	
+	return class.extend(o, self)
 end
 
 --
@@ -142,16 +142,6 @@ function _M:draw()
 	sx = self._position[1] + self._middleX - (font:getWidth(name) / 2)
 	sy = self._position[2] + self._boundingRectangle[4] + font:getHeight()
 	love.graphics.print(name, sx, sy)
-end
-
--- set the position of the visualizer
-function _M:position(x, y)
-	if not x then
-		return self._position[1], self._position[2]
-	end
-	
-	self._position[1] = x
-	self._position[2] = y
 end
 
 return _M

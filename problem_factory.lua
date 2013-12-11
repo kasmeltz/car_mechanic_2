@@ -52,7 +52,7 @@ function addProblems(vehicle, gt)
 	local distributionIndex = nil
 		
 	for i, di in ipairs(problemDistributions) do
-		if vehicle:kms() > di.range[1] and vehicle:kms() < di.range[2] then
+		if vehicle:kms() >= di.range[1] and vehicle:kms() <= di.range[2] then
 			distribution = di
 			distributionIndex = i
 			break

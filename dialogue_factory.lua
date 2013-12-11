@@ -1,7 +1,7 @@
 local 	assert, loadstring, setfenv, math, love =
 		assert, loadstring, setfenv, math, love
 	
-local appointmentResolver = require 'appointment_resolver'	
+local visitResolver = require 'visit_resolver'	
 local dialogue = require 'dialogue'
 
 module ('dialogueFactory')
@@ -22,8 +22,7 @@ function newCustomerDialogue(world, appointment)
 		calendar = world:calendar(),
 		scheduler = world:scheduler(),
 		appointment = appointment,
-		apptResolverInstance = world:appointmentResolver(),
-		appointmentResolver = appointmentResolver,
+		visitResolver = visitResolver,
 		math = math,
 		garage = world:garage(),
 		worldTime = world:worldTime(),

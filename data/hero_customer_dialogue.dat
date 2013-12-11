@@ -25,7 +25,7 @@ return
 			{
 				line = function() return 'Screw you too I\'m leaving!' end,
 				next = function() return '' end,
-				onChoose = function() apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) end
+				onChoose = function() world:finalizeAppointment(appointment, visitResolver.CUSTOMER_PISSED) end
 			}
 		}
 	},
@@ -131,7 +131,7 @@ return
 				-- to do should this be based on a feature of the customer rather than just random?
 				condition = function() return math.random(1, 100) < 50 end,
 				line = function() return 'I understand, you can\'t do everyhing, right? Thanks anyways.' end,
-				onChoose = function() apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) end,
+				onChoose = function() world:finalizeAppointment(appointment, visitResolver.SENT_AWAY_UNABLE) end,
 				next = function() return '' end
 			},
 			{
@@ -154,7 +154,7 @@ return
 				line = function() return 'Hey, we\'re a small shop we can\'t do everything around here.' end,
 				onChoose = function() 
 					customer:angerInc(50)
-					apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) 
+					world:finalizeAppointment(appointment, visitResolver.SENT_AWAY_UNABLE) 
 				end,
 				next = function() return '' end
 			}
@@ -170,7 +170,7 @@ return
 				onChoose = function() 
 					hero:skillPointsInc(1)
 					customer:angerInc(-50)
-					apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) 
+					world:finalizeAppointment(appointment, visitResolver.SENT_AWAY_UNABLE) 
 				end,
 				next = function() return '' end
 			}
@@ -190,7 +190,7 @@ return
 			{
 				line = function() return 'I\'m sorry the problem is urgent and I need it looked at right away. Maybe next time!' end,
 				next = function() return '' end,
-				onChoose = function() apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) end
+				onChoose = function() world:finalizeAppointment(appointment, visitResolver.DIDNT_WANT_TO_WAIT) end
 			}
 		}
 	},
@@ -201,8 +201,19 @@ return
 		{
 			{
 				line = function() return 'Let me check my computer to see when we could have a look at it.' end,
-				next = function() return 'hero_suggest_come_back' end,
+				next = function() return 'hero_suggest_come_back_calendar' end,
 				onChoose = function() world:showCalendar() end
+			}
+		}
+	},
+	hero_suggest_come_back_calendar = 
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'Ok here is a free time slot.' end,
+				next = function() return 'hero_suggest_come_back' end,
 			}
 		}
 	},
@@ -212,7 +223,7 @@ return
 		options =
 		{
 			{
-				line = function() return 'What about ' .. calendar:proposedAppointmentTime(worldTime, world:selectedAppointmentTime()) .. '?' end,
+				line = function() return 'What about ' .. worldTime:dateInFutureText(world:selectedAppointmentTime()) .. '?' end,
 				next = function() return 'cust_decide_come_back' end
 			}
 		}
@@ -230,7 +241,7 @@ return
 			{
 				line = function() return 'I\'m sorry the problem is a little more urgent than that, and I need it looked at sooner. Maybe next time!' end,
 				next = function() return '' end,
-				onChoose = function() apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) end
+				onChoose = function() world:finalizeAppointment(appointment, visitResolver.DIDNT_WANT_TO_WAIT) end
 			}
 		}
 	},
@@ -264,7 +275,7 @@ return
 			{
 				line = function() return 'Excellent, ' .. customer:firstName() .. '! The name\'s ' .. hero:firstName() .. '. Nice to meet you. We will see you later.' end,
 				next = function() return '' end,
-				onChoose = function() scheduler:scheduleComeBack(appointment, world:selectedAppointmentTime()) end
+				onChoose = function() world:scheduleComeBack(appointment) end
 			}
 		}
 	},
@@ -290,8 +301,19 @@ return
 			},
 			{
 				line = function() return 'I don\'t think we can have it ready by then. Let me check and see when I could have it ready for you...' end,
-				next = function() return 'hero_suggest_finish_time' end,
+				next = function() return 'hero_suggest_finish_time_calendar' end,
 				onChoose = function() world:showCalendar() end
+			}
+		}
+	},
+	hero_suggest_finish_time_calendar =
+	{
+		actor = 'h',
+		options =
+		{
+			{
+				line = function() return 'Ok here is a free time slot.' end,
+				next = function() return 'hero_suggest_finish_time' end,
 			}
 		}
 	},
@@ -301,7 +323,7 @@ return
 		options =
 		{
 			{
-				line = function() return 'What about ' .. calendar:proposedAppointmentTime(worldTime, world:selectedAppointmentTime()) .. '?' end,
+				line = function() return 'What about ' .. worldTime:dateInFutureText(world:selectedAppointmentTime()) .. '?' end,
 				next = function() return 'customer_accept_finish_time' end
 			}
 		}
@@ -312,14 +334,14 @@ return
 		options =
 		{
 			{
-				condition = function() return customer:acceptFinishTime(worldTime, garage.currentAptTime) end,
+				condition = function() return customer:acceptFinishTime(worldTime, world:selectedAppointmentTime()) end,
 				line = function() return 'Sure I can wait until then to pick it up.' end,
 				next = function() return 'hero_get_name' end
 			},
 			{
 				line = function() return 'I\'m sorry the problem is a little more urgent than that, and I need it to be finished sooner. Maybe next time!' end,
 				next = function() return '' end,
-				onChoose = function() apptResolverInstance:resolveAppt(appointment, appointmentResolver.CUSTOMER_SENT_AWAY) end
+				onChoose = function() world:finalizeAppointment(appointment, visitResolver.DIDNT_WANT_TO_WAIT) end
 			}
 		}
 	},

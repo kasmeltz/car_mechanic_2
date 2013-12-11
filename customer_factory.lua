@@ -8,10 +8,10 @@ module('customerFactory')
 
 sexes = {}
 ethnicities = {}
-local ageRanges = {}
-local maleFirstNames = {}
-local femaleFirstNames = {}
-local lastNames = {}
+ageRanges = {}
+maleFirstNames = {}
+femaleFirstNames = {}
+lastNames = {}
 
 function initialize()
 	local data = {}

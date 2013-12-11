@@ -46,10 +46,14 @@ end
 -------------------------------------------------------------------------------
 -- public functions
 
+function _M:schedule()
+	return self._schedule
+end
+
 -- creates an appointment for the provided customer and time
-function _M:createAppointment(customer, gt)
+function _M:createAppointment(customer, gt, isKnown)
 	local apt = appointment:new(customer)		
-	apt:addVisit(gt)	
+	apt:addVisit(gt, isKnown)	
 	self._schedule[apt] = apt
 end
 
@@ -60,7 +64,7 @@ function _M:getNextDay(garage, gt)
 	
 	-- clean out any old appointemnts
 	for k, apt in pairs(self._schedule) do
-		local firstVisitDate = apt:visit(1):date()
+		local firstVisitDate = apt:visit(1):scheduledTime():date()
 		if  gameDate.year > firstVisitDate.year or
 			gameDate.month > firstVisitDate.month or
 			gameDate.day > firstVisitDate.day then
@@ -75,7 +79,7 @@ function _M:getNextDay(garage, gt)
 	-- return the appointments for this day
 	local schedule = {}	
 	for k, apt in pairs(self._schedule) do
-		local firstVisitDate = apt:visit(1):date()		
+		local firstVisitDate = apt:visit(1):scheduledTime():date()		
 		if gameDate.day == firstVisitDate.day and
 			gameDate.month == firstVisitDate.month and
 			gameDate.year == firstVisitDate.year then
@@ -115,7 +119,7 @@ function _M:scheduleDaysCustomers(garage, gt)
 			aptTime:setTime(d)
 			
 			local customer = generateNewCustomer(gt)
-			self:createAppointment(customer, aptTime)
+			self:createAppointment(customer, aptTime, false)
 		end
 		
 		-- to do figure out how this will work!!
@@ -140,7 +144,7 @@ function _M:scheduleComeBack(apt, gt)
 	-- the customer will actually return
 	-- could be based on customer stats
 	
-	apt:addVisit(gt)
+	apt:addVisit(gt, true)
 end
 
 -- schedules an existing customer at some time in the future
@@ -152,14 +156,14 @@ function _M:addExistingCustomerToScheduleFuture(customer, gt)
 	-- to do decide if the customers stats should change the next time they come back	
 	
 	problemFactory.addProblems(customer:vehicle(), aptTime)	
-	self:createAppointment(customer, aptTime)
+	self:createAppointment(customer, aptTime, false)
 end
 
 -- schedules a new customer some time in the future
 function _M:addNewCustomerToScheduleFuture(gt)
 	local aptTime = randomDateInFuture(gt)
 	local customer = generateNewCustomer(gt)
-	self:createAppointment(customer, aptTime)
+	self:createAppointment(customer, aptTime, false)
 end
 
 return _M

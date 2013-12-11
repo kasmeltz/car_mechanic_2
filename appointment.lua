@@ -1,11 +1,13 @@
 local 	setmetatable =
 		setmetatable
+
+local visit = require 'visit'
 		
 module('appointment')
 
 -- sorts appointments in ascending time of first visit order
 function timeOfFirstVisitSorter(a, b)
-	return a._visits[1]._seconds < b._visits[1]._seconds 
+	return a._visits[1]._scheduledTime._seconds < b._visits[1]._scheduledTime._seconds 
 end
 
 function _M:new(c)
@@ -14,11 +16,7 @@ function _M:new(c)
 	o._customer = c
 	c:appointment(o)
 
-	o._visits = {}
-	o._arrivals = {}
-	
-	o._resolution = false		
-	o._isKnown = false
+	o._visits = {}		
 	
 	self.__index = self
 	
@@ -31,8 +29,11 @@ function _M:customer()
 end
 
 --
-function _M:addVisit(gt)
-	self._visits[#self._visits + 1] = gt
+function _M:addVisit(gt, isKnown)
+	local v = visit:new(self)
+	v:scheduledTime(gt)
+	v:isKnown(isKnown)	
+	self._visits[#self._visits + 1] = v
 end
 
 -- 
@@ -51,31 +52,9 @@ function _M:latestVisit()
 end
 
 --
-function _M:resolution(v)
-	if not v then return self._resolution end
-	self._resolution = r
-end
-
---
-function _M:isKnown(v)
-	if v == nil then return self._isKnown end
-	self._isKnown = k
-end
-
---
-function _M:hasArrivedForLatestVisit()
-	return #self._arrivals == #self._visits
-end
-
---
 function _M:arrive(gt)
-	self._arrivals[#self._arrivals + 1] = gt
+	self._visits[#self._visits]:arrivalTime(gt)
 	self._customer:arrive(gt)
-end
-
--- 
-function _M:arrivals()
-	return self._arrivals
 end
 
 return _M

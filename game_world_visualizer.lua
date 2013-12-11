@@ -83,7 +83,7 @@ function _M:draw(dt)
 		
 		love.graphics.print(c:name() .. '->' .. v:year() .. ' ' .. 
 			v:vehicleType() .. ' ' .. 
-			v:kms() .. ' kms -> Due by: ' .. a:latestVisit():tostring(), 0, sy)	
+			v:kms() .. ' kms -> Due by: ' .. a:latestVisit():scheduledTime():tostring(), 0, sy)	
 		sy = sy + 20
 	end
 	
@@ -100,7 +100,7 @@ function _M:draw(dt)
 		
 		love.graphics.print(c:name() .. '->' .. v:year() .. ' ' .. 
 			v:vehicleType() .. ' ' .. 
-			v:kms() .. ' kms -> Due by: ' .. a:latestVisit():tostring(), 0, sy)	
+			v:kms() .. ' kms -> Due by: ' .. a:latestVisit():scheduledTime():tostring(), 0, sy)	
 			
 		sy = sy + 20
 		
@@ -141,7 +141,7 @@ function _M:draw(dt)
 		
 		sy = 25
 		for _, apt in ipairs(daysSchedule) do
-			love.graphics.print(apt:visit(1):tostring(), 650, sy)
+			love.graphics.print(apt:visit(1):scheduledTime():tostring(), 650, sy)
 			sy = sy + 20
 		end
 	end
@@ -149,7 +149,7 @@ function _M:draw(dt)
 	for _, apt in ipairs(world:unresolvedAppointements()) do
 		love.graphics.print('UNRESOLVED: ' .. apt:customer():name(), 650, sy)
 		if #apt:visits() > 1 then
-			love.graphics.print(apt:latestVisit():tostring(), 900, sy)
+			love.graphics.print(apt:latestVisit():scheduledTime():tostring(), 900, sy)
 			sy = sy + 20
 		end
 	end

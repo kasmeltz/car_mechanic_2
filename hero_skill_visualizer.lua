@@ -1,17 +1,16 @@
-local	setmetatable, math =
-		setmetatable, math
-		
+local overlay = require 'overlay'
+local class = require 'class'
+
 module('heroSkillVisualizer')
 
 -- returns a new hero skill visualizer object
 function _M:new(hero)
-	local o = {}
+	local o = overlay:new()
 	
-	o.hero
+	o._hero = hero
 	
-	self.__index = self
-	
-	return setmetatable(o, self)
+	self.__index = self	
+	return class.extend(o, self)
 end
 
 return _M

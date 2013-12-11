@@ -1,6 +1,10 @@
-local 	setmetatable, math =
-		setmetatable, math
+local 	math =
+		math
 		
+local calendar = require 'calendar'
+		
+local person = require 'person'
+local class = require 'class'
 local gameTime = require 'gameTime'		
 		
 module('customer')
@@ -11,35 +15,15 @@ _M.ANGER_STAT = 3
 
 -- returns a new customer object
 function _M:new()
-	local o = {}
+	local o = person:new()
 
 	o._isOnPremises = false
 	o._anger = 100
 	o._nameRevealed = false
 	o._readStats = {}	
-
-	self.__index = self
 	
-	return setmetatable(o, self)
-end
-
---
-function _M:sex(v)
-	if not v then return self._sex end
-	self._sex = v
-end
-
---
-function _M:salutation()
-	if not self._sal then			
-		if self._sex.name:lower() == 'male' then
-			self._sal = 'sir'
-		else
-			self._sal = 'ma\'ame'
-		end
-	end
-	
-	return self._sal	
+	self.__index = self	
+	return class.extend(o, self)
 end
 
 --
@@ -56,36 +40,12 @@ function _M:firstName(v)
 end
 
 --
-function _M:lastName(v)
-	if not v then return self._lastName end
-	self._lastName = v
-end
-
---
 function _M:name()
 	if self._nameRevealed then
 		return self._firstName .. ' ' .. self._lastName
 	end
 	
 	return 'New customer'
-end
-
---
-function _M:ethnicity(v)
-	if not v then return self._ethnicity end
-	self._ethnicity = v
-end
-
---
-function _M:face(v)
-	if not v then return self._face end
-	self._face = v
-end
-
---
-function _M:birthYear(v)
-	if not v then return self._birthYear end
-	self._birthYear = v
 end
 
 --
@@ -159,12 +119,6 @@ function _M:update(dt)
 end
 
 --
-function _M:age(gt)
-	local age = gt:date().year - self._birthYear	
-	return age
-end
-
---
 function _M:pickUpTime(v)
 	if not v then return self._pickUpTime end
 	self._pickUpTime = v
@@ -191,7 +145,7 @@ function _M:finishTimeRequired(currentTime)
 	aptTime:seconds(currentTime:seconds() + oneHour)
 	self._pickUpTime = aptTime
 	
-	return 'later'	
+	return currentTime:dateInFutureText(aptTime)
 end
 
 --
@@ -203,7 +157,7 @@ function _M:acceptFinishTime(currentTime, aptTime)
 	
 	local value = math.random(1, 100)
 	
-	if value < 50 then
+	if value < 100 then
 		-- if accepted, this finish time should be stored so that the customer
 		-- can responsd accordingly if the finish time is or isn't met
 		self._pickUpTime = aptTime

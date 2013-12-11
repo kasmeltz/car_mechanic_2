@@ -1,5 +1,5 @@
 local hero = require 'hero' 
-local appointmentResolver = require 'appointment_resolver'
+local visitResolver = require 'visit_resolver'
 local customerScheduler = require 'customer_scheduler'
 local calendar = require 'calendar'
 local customer = require 'customer'
@@ -47,7 +47,7 @@ function _M:startNew()
 	self._scheduler = customerScheduler:new()
 	self._hero = hero:new(self)
 	self._calendar = calendar:new(self)
-	self._appointmentResolver = appointmentResolver:new(self)
+	self._visitResolver = visitResolver:new(self)
 	
 	self._unresolvedAppointements = {}	
 		
@@ -96,8 +96,8 @@ function _M:calendar()
 end
 
 --
-function _M:appointmentResolver()
-	return self._appointmentResolver
+function _M:visitResolver()
+	return self._visitResolver
 end
 
 --
@@ -143,8 +143,7 @@ function _M:debugApptDetails(msg, apt)
 	print('--- ' .. msg .. ' ----------')
 	print(apt:customer():name())
 	print('visits: ' .. #apt:visits())
-	print('arriavls: ' .. #apt:arrivals())
-	print('hasArrivedForLatestVisit: ' .. tostring(apt:hasArrivedForLatestVisit()))
+	print('hasArrivedForLatestVisit: ' .. tostring(apt:latestVisit():hasArrived()))
 end
 
 --
@@ -219,11 +218,24 @@ end
 function _M:showCalendar()
 	self._selectedAppointmentTime = nil
 	
-	local mv = calendarVisualizer:new(self._scheduler, self._calender, self._worldTime)	
+	local fh = self._garage:openingHour()
+	local lh = self._garage:closingHour() - 1
+	
+	local mv = calendarVisualizer:new(self._scheduler, self._calendar, self._worldTime, fh, lh)	
+	local sw = love.graphics:getWidth()
+	local sh = love.graphics:getHeight()
+
+	mv:position(0, 0)	
+	mv:size(sw, sh)
+	
 	self._visualizer:addOverlay(mv)
 	mv.onClose = 
 		function()
 			self._selectedAppointmentTime = mv:selectedTime()
+			
+			print(self._selectedAppointmentTime:tostring('%c'))
+			print(self._worldTime:dateInFutureText(self._selectedAppointmentTime))
+			
 			self._visualizer:removeOverlay(mv)			
 		end
 end
@@ -231,6 +243,18 @@ end
 --
 function _M:selectedAppointmentTime()
 	return self._selectedAppointmentTime
+end
+
+--
+function _M:scheduleComeBack(apt)
+	self._visitResolver:resolveVisit(apt, visitResolver.SCHEDULED_APPOINTMENT)
+	self._scheduler:scheduleComeBack(apt, self._selectedAppointmentTime)	
+end
+
+--
+function _M:finalizeAppointment(apt, reason)
+	self._visitResolver:resolveVisit(apt, reason)
+	table.removeObject(self._unresolvedAppointements, apt)
 end
 
 --
@@ -242,8 +266,7 @@ function _M:releaseVehicle(apt)
 	self._garage:leaveBay(vehicle)
 	vehicle:isOnPremises(false)			
 	
-	self._appointmentResolver:resolveAppt(apt, appointmentResolver.PROBLEMS_FIXED)
-	table.removeObject(self._unresolvedAppointements, apt)
+	self:finalizeAppointment(apt, visitResolver.PICKED_UP_VEHICLE)
 end
 
 --
@@ -252,8 +275,10 @@ function _M:acceptVehicle(apt)
 	if self._garage:parkVehicle(vehicle) then	
 	else
 	end
-	vehicle:isOnPremises(true)		
-	self._scheduler:scheduleComeBack(apt, apt:customer():pickUpTime())
+	vehicle:isOnPremises(true)	
+	
+	self._visitResolver:resolveVisit(apt, visitResolver.DROPPED_OFF_VEHICLE)
+	self._scheduler:scheduleComeBack(apt, apt:customer():pickUpTime())	
 end
 
 --
@@ -315,9 +340,9 @@ function _M:update(dt)
 
 	-- test if any customers have arrived
 	for k, apt in ipairs(self._daysSchedule) do
-		if not apt:hasArrivedForLatestVisit() then				
-			local firstVisit = apt:visit(1)			
-			if worldTime:isAfterOrSame(firstVisit) then
+		if not apt:latestVisit():hasArrived() then				
+			local scheduledTime = apt:visit(1):scheduledTime()		
+			if worldTime:isAfterOrSame(scheduledTime) then
 				self:arriveAppointment(apt)
 				table.insert(self._unresolvedAppointements, apt)
 				table.remove(self._daysSchedule, k)
@@ -329,9 +354,9 @@ function _M:update(dt)
 	
 	-- update unresolved appointments
 	for _, apt in ipairs(self._unresolvedAppointements) do
-		if not apt:hasArrivedForLatestVisit() and #apt:visits() > 1 then
-			local visit = apt:latestVisit()
-			if worldTime:isAfterOrSame(visit) then
+		if #apt:visits() > 1 and not apt:latestVisit():hasArrived() then
+			local scheduledTime = apt:latestVisit():scheduledTime()
+			if worldTime:isAfterOrSame(scheduledTime) then
 				self:debugApptDetails('before', apt)
 				self:arriveAppointment(apt)
 				self:debugApptDetails('after', apt)
@@ -429,6 +454,10 @@ function _M:keyreleased(key)
 		if v then					
 			v:abandonCurrentProblem()
 		end
+	end
+	
+	if key == '5' then
+		self:showCalendar()
 	end
 end
 

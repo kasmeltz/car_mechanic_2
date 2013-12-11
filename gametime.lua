@@ -1,5 +1,5 @@
-local	os, setmetatable, type = 
-		os, setmetatable, type
+local	os, setmetatable, type, tonumber, print = 
+		os, setmetatable, type, tonumber, print
 
 module('gametime')
 
@@ -148,15 +148,189 @@ function _M:yearAdvanced()
 	return self._yearAdvanced 
 end
 
--- returns true if the game time is after another game time
+-- returns true if the game time is after or the same as another game time
 function _M:isAfterOrSame(gt)
 	return self._seconds >= gt._seconds
 end	
+
+-- returns true if the game time is before or the same as another game time
+function _M:isBeforeOrSame(gt)
+	return self._seconds <= gt._seconds
+end	
+
+--
+function _M:modifiedTime(y, mo, d, h, mi, s)
+	if type(y) == 'table' then
+		y = y.year
+		mo = y.month
+		d = y.day
+		h = y.hour
+		mi = y.min
+		s = yi.sec
+	end
+	
+	local date = os.date('*t', self._seconds)
+		
+	date.year = y or date.year
+	date.month = mo or date.month
+	date.day = d or date.day
+	date.hour = h or date.hour
+	date.min = mi or date.min
+	date.sec = s or date.sec
+	
+	local gt = _M:new()
+	gt:setTime(date)
+	
+	return gt
+end
+
+--
+function _M:addTime(y, mo, d, h, mi, s)
+	if type(y) == 'table' then
+		y = y.year
+		mo = y.month
+		d = y.day
+		h = y.hour
+		mi = y.min
+		s = yi.sec
+	end
+	
+	local date = os.date('*t', self._seconds)
+	date.year = date.year + y
+	date.month = date.month + mo
+	date.day = date.day + d
+	date.hour = date.hour + h
+	date.min = date.min + mi
+	date.sec = date.sec + s
+	
+	local gt = _M:new()
+	gt:setTime(date)
+	
+	return gt
+end
+
+--
+function _M:addYears(y)
+	return self:addTime(y, 0, 0, 0, 0 ,0)
+end
+	
+--
+function _M:addMonths(m)
+	return self:addTime(0, m, 0, 0, 0 ,0)
+end
+
+--
+function _M:addDays(d)
+	return self:addTime(0, 0, d, 0, 0, 0)
+end
+
+--
+function _M:addHours(h)
+	return self:addTime(0, 0, 0, h, 0, 0)
+end
+
+--
+function _M:addMinutes(m)
+	return self:addTime(0, 0, 0, 0, m, 0)
+end
+
+--
+function _M:addSeconds(s)
+	return self:addTime(0, 0, 0, 0, 0, s)
+end
+
+--
+function _M:dayOfWeek()
+	return tonumber(os.date('%w', self._seconds))
+end
+
+--
+function _M:day()
+	return tonumber(os.date('%d', self._seconds))
+end
+
+--
+function _M:hour()
+	return tonumber(os.date('%H', self._seconds))
+end
+
+--
+function _M:minute()
+	return tonumber(os.date('%M', self._seconds))
+end
 
 --
 function _M:tostring(fmt)
 	local fmt = fmt or '%x %X'	
 	return os.date(fmt, self._seconds)
+end
+
+--
+function _M:dateInFutureText(futureTime)
+	local currentDate = self._date
+	local futureDate = futureTime._date
+		
+	local aptHour = futureTime:tostring('%I')
+	if #aptHour == 2 then
+		if aptHour:sub(1,1) == '0' then
+			aptHour = aptHour:sub(2,2)
+		end
+	end
+	
+	local appTime = ' at ' .. aptHour .. futureTime:tostring(':%M %p')
+	
+	local timeDiff = os.difftime(futureTime._seconds, self._seconds)
+	
+	local secondsInDay = 60 * 60 * 24
+	local secondsInWeek = secondsInDay * 7
+	
+	if timeDiff < secondsInWeek * 2 then
+		if currentDate.day == futureDate.day then
+			return 'today' .. appTime
+		end
+		
+		if currentDate.day == futureDate.day - 1 then
+			return 'tomorrow' .. appTime
+		end
+		
+		if timeDiff < secondsInWeek then
+			return 'this ' .. futureTime:tostring('%A') .. appTime
+		else
+			return 'next ' .. futureTime:tostring('%A') .. appTime		
+		end						
+	else				
+		local dayExtension = 'th'
+		local day = os.date('%d', futureTime._seconds)
+		if #day == 2 then
+			if day:sub(1, 1) == '0' then
+				day = day:sub(2, 2)
+			end
+		end
+		
+		if #day == 2 and day:sub(1, 1) == '1' then
+		else
+			local lastDigit = day:sub(#day, #day)												
+			if lastDigit == '1' then
+				dayExtension = 'st'
+			elseif lastDigit == '2' then
+				dayExtension = 'nd'
+			elseif lastDigit == '3' then
+				dayExtension = 'rd'					
+			end
+		end	
+		
+		if currentDate.year == futureDate.year then
+			if currentDate.month == futureDate.month then								
+				return 'the ' .. day .. dayExtension .. appTime
+			else
+				return futureTime:tostring('%B ') .. day .. dayExtension .. appTime
+			end
+		else
+			return futureTime:tostring('%B ') .. day .. dayExtension .. futureTime:tostring(', %Y') .. appTime
+		end	
+	end
+
+	return 'later'	
 end
 
 return _M

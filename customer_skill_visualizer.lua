@@ -1,15 +1,17 @@
-local 	setmetatable, ipairs, love = 
-		setmetatable, ipairs, love
+local 	ipairs, love = 
+		ipairs, love
+
+local overlay = require 'overlay'
+local class = require 'class'
 		
 module ('customerSkillVisualizer')
 	
 --
 function _M:new(hero, customer)
-	local o = {}
+	local o = overlay:new()
 
 	o._hero = hero
 	o._customer = customer
-	o._position = { 0, 0 }
 	
 	local min, max = hero:readingPeopleAccuracy()
 	o._accuracy = { min, max }
@@ -30,9 +32,8 @@ function _M:new(hero, customer)
 		
 	o._values = { 0, 0, 0 }
 	
-	self.__index = self
-	
-	return setmetatable(o, self)
+	self.__index = self	
+	return class.extend(o, self)
 end
 
 --
@@ -71,16 +72,6 @@ function _M:draw()
 	
 	sx = self._position[1]
 	love.graphics.print('(Correct ' .. self._accuracy[1] .. '-' .. self._accuracy[2] .. '% of the time, all the time)!', sx, sy)
-end
-
---
-function _M:position(x, y)
-	if not x then 
-		return self._position[1], self._position[2]
-	end
-	
-	self._position[1] = x
-	self._position[2] = y
 end
 
 return _M
