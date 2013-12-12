@@ -79,7 +79,7 @@ function _M:buildWeekDisplay()
 	-- insert the scheduled appointments
 	for _, apt in pairs(scheduler:schedule()) do
 		for _, visit in ipairs(apt:visits()) do
-			if visit:isKnown() then
+			if visit:isKnown() and not visit:resolution() then
 				local scheduledTime = visit:scheduledTime()
 				if scheduledTime:isAfterOrSame(firstDay) and scheduledTime:isBeforeOrSame(lastDay) then
 					local dayIndex = scheduledTime:dayOfWeek() + 1
@@ -298,7 +298,7 @@ function _M:drawWeek()
 		else		
 			for slotIndex, slot in ipairs(day) do
 				if #slot > 0 then
-					love.graphics.setColor(255, 0, 0, 128)
+					love.graphics.setColor(0, 255, 0, 128)
 					love.graphics.rectangle('fill', sx, sy, widthPerTimeSlot, heightPerTimeSlot)
 					love.graphics.setColor(255, 255, 255, 255)
 				end

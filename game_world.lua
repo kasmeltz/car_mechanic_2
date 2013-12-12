@@ -422,6 +422,7 @@ function _M:keyreleased(key)
 						self._worldTime:rate(3)				
 						self._hero:stopDiagnose(problem:vehicle())
 						problem:correctlyDiagnose()
+						self:popUpTextDialog('I think this vehicle has ' .. problem:currentDescription().name)
 					end			
 					
 					self:popUpTextDialog('A problem was found!')
@@ -444,6 +445,7 @@ function _M:keyreleased(key)
 				v.onFinishRepair = function(problem)	
 					self._worldTime:rate(3)	
 					self._hero:stopRepair(problem:vehicle())
+					self:popUpTextDialog('The problem with ' .. problem:currentDescription().name .. ' has been fixed!')
 				end			
 			end
 		end
