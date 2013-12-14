@@ -50,6 +50,9 @@ end
 
 --
 function _M:update(dt)
+	local currentDialogue = self._dialogue:current()
+	if not currentDialogue then return end
+	
 	if self._dialogue:currentIsHero() then
 		if not self._heroOptions then
 			local d = self._dialogue:current()

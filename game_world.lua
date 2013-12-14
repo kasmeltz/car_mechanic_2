@@ -262,6 +262,11 @@ function _M:releaseVehicle(apt)
 	self._garage:bankAccountInc(1000)
 	
 	local vehicle = apt:customer():vehicle()	
+	
+	if vehicle == self._hero:focusedVehicle() then
+		self._hero:unFocusVehicle()
+	end
+	
 	self._garage:unParkVehicle(vehicle)
 	self._garage:leaveBay(vehicle)
 	vehicle:isOnPremises(false)			
@@ -413,52 +418,60 @@ function _M:keyreleased(key)
 	if key == '2' then
 		local v = self._garage:workingBay(1)
 		if v then
+			if v == self._hero:focusedVehicle() then
+				self._hero:unFocusVehicle()
+			end
+			self._garage:leaveBay(v)
+			self._garage:parkVehicle(v)
+		end
+	end
+	
+	if key == '3' then
+		local v = self._garage:workingBay(1)
+		if v then
+			self._hero:focusedVehicle(v)
+		end
+	end
+	
+	if key == '4' then
+		local v = self._hero:focusedVehicle()
+		if v then
 			local problem = v:currentProblem()
 			if problem then
 				if not problem:currentDiagnosis():isFinished() then					
-					self._hero:startDiagnose(v)
+					self._hero:startDiagnose()
 
 					v.onFinishDiagnosis = function(problem)	
 						self._worldTime:rate(3)				
-						self._hero:stopDiagnose(problem:vehicle())
+						self._hero:stopDiagnose()
 						problem:correctlyDiagnose()
 						self:popUpTextDialog('I think this vehicle has ' .. problem:currentDescription().name)
 					end			
 					
 					self:popUpTextDialog('A problem was found!')
+				elseif not problem:currentRepair():isFinished() then
+					self._hero:startRepair()
+					
+					v.onFinishRepair = function(problem)	
+						self._worldTime:rate(3)	
+						self._hero:stopRepair()
+						self:popUpTextDialog('The problem with ' .. problem:currentDescription().name .. ' has been fixed!')
+					end			
 				end
 			else
 				self:popUpTextDialog('No more problems have been found!')
 			end
 		end
 	end
-		
-	if key == '3' then
-		local v = self._garage:workingBay(1)
-		if v then	
-			local problem = v:currentProblem()		
-			if problem and problem:currentDiagnosis():isFinished() and
-				not problem:currentRepair():isFinished() then
-				
-				self._hero:startRepair(v)
-
-				v.onFinishRepair = function(problem)	
-					self._worldTime:rate(3)	
-					self._hero:stopRepair(problem:vehicle())
-					self:popUpTextDialog('The problem with ' .. problem:currentDescription().name .. ' has been fixed!')
-				end			
-			end
-		end
-	end
-	
-	if key == '4' then
+			
+	if key == '5' then
 		local v = self._garage:workingBay(1)
 		if v then					
 			v:abandonCurrentProblem()
 		end
 	end
 	
-	if key == '5' then
+	if key == '6' then
 		self:showCalendar()
 	end
 end

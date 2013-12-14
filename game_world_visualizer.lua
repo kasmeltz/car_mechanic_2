@@ -96,12 +96,25 @@ function _M:draw(dt)
 	for _, v in ipairs(workingBays) do
 		local c = v:customer()
 		local a = c:appointment()
-		local p = v:currentProblem()
 		
 		love.graphics.print(c:name() .. '->' .. v:year() .. ' ' .. 
 			v:vehicleType() .. ' ' .. 
 			v:kms() .. ' kms -> Due by: ' .. a:latestVisit():scheduledTime():tostring(), 0, sy)	
-			
+		sy = sy + 20
+	end
+		
+	local v = world:hero():focusedVehicle()
+	if v then
+		local c = v:customer()
+		local a = c:appointment()
+		local p = v:currentProblem()
+		
+		sy = sy + 20
+		love.graphics.print('=== CURRENTLY WORKING ON ===', 0, sy)
+		sy = sy + 20
+		love.graphics.print(c:name() .. '->' .. v:year() .. ' ' .. 
+			v:vehicleType() .. ' ' .. 
+			v:kms() .. ' kms -> Due by: ' .. a:latestVisit():scheduledTime():tostring(), 0, sy)	
 		sy = sy + 20
 		
 		love.graphics.print('Number of problems: ' .. #v:problems(), 0, sy)	

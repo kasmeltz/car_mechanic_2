@@ -114,46 +114,49 @@ function _M:readPerson(person)
 end
 
 --
-function _M:startDiagnose(v)
-	self._focusedVehicle = v
+function _M:focusedVehicle(v)
+	if not v then
+		return self._focusedVehicle
+	end		
+	self._focusedVehicle = v	
+end
+
+--
+function _M:unFocusVehicle()
+	self._focusedVehicle = nil
+	self._diagnosing = false
+	self._repairing = false
+end
+
+--
+function _M:startDiagnose()
 	self._diagnosing = true
 end
 
 --
-function _M:stopDiagnose(v)
+function _M:stopDiagnose()
 	self._diagnosing = false
 end
 
--- 
-function _M:diagnose(v, dt)
-	v:updateDiagnosis(dt)
-end
-
 --
-function _M:startRepair(v)
-	self._focusedVehicle = v
+function _M:startRepair()
 	self._repairing = true
 end
 
 --
-function _M:stopRepair(v)
+function _M:stopRepair()
 	self._repairing = false
-end
-
--- 
-function _M:repair(v, dt)
-	v:updateRepair(dt)
 end
 
 --
 function _M:update(dt)	
 	if self._focusedVehicle then
 		if self._diagnosing == true then
-			self:diagnose(self._focusedVehicle, dt)
+			self._focusedVehicle:updateDiagnosis(dt)
 		end
 		
 		if self._repairing == true then
-			self:repair(self._focusedVehicle, dt)
+			self._focusedVehicle:updateRepair(dt)
 		end
 	end
 end
