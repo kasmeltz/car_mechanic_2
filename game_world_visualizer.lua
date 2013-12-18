@@ -122,9 +122,10 @@ function _M:draw(dt)
 		sy = sy + 20		
 
 		if p ~= nil then
-			local d = p:currentDiagnosis()		
-			local r = p:currentRepair()
-			local de = p:currentDescription()
+			local a = p:currentAttempt()
+			local d = a:diagnosis()		
+			local r = a:repair()
+			local de = a:description()
 
 			love.graphics.print('Diagnosis progress: ' .. d:progress(), 0, sy)
 			

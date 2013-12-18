@@ -1,8 +1,7 @@
-local diagnosis = require 'diagnosis'
-local repair = require 'repair'
-
 local 	setmetatable, math =
 		setmetatable, math
+
+local problemAttempt = require 'problem_attempt'
 		
 module('problem')
 
@@ -36,15 +35,9 @@ function _M:time(v)
 end
 
 --
-function _M:newAttempt()	
-	local d = diagnosis:new()
-	local r = repair:new()	
-	
-	self._attempts[#self._attempts + 1] = 
-	{
-		_diagnosis = d,
-		_repair = r
-	}		
+function _M:newAttempt()
+	local a = problemAttempt:new()		
+	self._attempts[#self._attempts + 1] = a
 end
 
 --
@@ -53,40 +46,29 @@ function _M:attempts()
 end
 
 --
-function _M:currentDiagnosis()
-	return self._attempts[#self._attempts]._diagnosis
-end
-
---
-function _M:currentRepair()
-	return self._attempts[#self._attempts]._repair
-end
-
---
-function _M:currentDescription(v)
-	if v == nil then 
-		return self._attempts[#self._attempts]._description
-	end
-	
-	self._attempts[#self._attempts]._description = v
+function _M:currentAttempt()
+	return self._attempts[#self._attempts]
 end
 
 --
 function _M:correctlyDiagnose()
-	self:currentDescription(self:realProblem())
-	self:currentDiagnosis():isCorrect(true)
+	local attempt = self._attempts[#self._attempts]
+	attempt:description(self:realProblem())
+	attempt:diagnosis():isCorrect(true)
 end
 
 --
 function _M:isCorrectlyDiagnosed()
-	local diagnosis = self:currentDiagnosis()
+	local attempt = self._attempts[#self._attempts]
+	local diagnosis = attempt:diagnosis() 
 	return diagnosis:isCorrect() and diagnosis:isFinished()
 end
 
 --
 function _M:isCorrectlyRepaired()
 	local isCorreclyDiagnosed = self:isCorrectlyDiagnosed()
-	local repair = self:currentRepair()
+	local attempt = self._attempts[#self._attempts]
+	local repair = attempt:repair()
 	return isCorreclyDiagnosed and repair:isFinished()	
 end
 

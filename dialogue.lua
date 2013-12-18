@@ -46,9 +46,7 @@ end
 
 --
 function _M:currentIsHero()
-	if self._currentDialogue then
-		return self._currentDialogue.actor == 'h'
-	end
+	return self._currentDialogue.actor == 'h'
 end
 
 return _M

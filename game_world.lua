@@ -3,6 +3,7 @@ local visitResolver = require 'visit_resolver'
 local customerScheduler = require 'customer_scheduler'
 local calendar = require 'calendar'
 local customer = require 'customer'
+local invoice = require 'invoice'
 local gameTime = require 'gameTime'
 local dialogueFactory = require 'dialogue_factory'
 local portraitVisualizer = require 'portrait_visualizer'
@@ -12,6 +13,7 @@ local vehicleDetailVisualizer = require 'vehicle_detail_visualizer'
 local gameWorldVisualizer = require 'game_world_visualizer'
 local messageVisualizer = require 'message_visualizer'
 local calendarVisualizer = require 'calendar_visualizer'
+local invoiceVisualizer = require 'invoice_visualizer'
 local garage = require 'garage'
 
 local 	setmetatable, ipairs, table, pairs, love, tostring, print =
@@ -174,7 +176,7 @@ function _M:startTalkingCustomer(apt)
 	local customerReading = customerSkillVisualizer:new(self._hero, apt:customer())
 	customerReading:position(sw - 50 - 300, 50 + ph + 50)
 	
-	self._visualizer:addOverlay(customerReading)	
+	self._visualizer:addOverlay(customerReading)
 	
 	local heroPortrait = portraitVisualizer:new(self._hero, self._worldTime)
 	heroPortrait:position(50, 50)	
@@ -212,6 +214,24 @@ function _M:stopTalkingCustomer(apt)
 	self._otherPortrait = nil
 	self._customerReading = nil	
 	self._dialogueVisualizer = nil	
+end
+
+--
+function _M:showInvoice(appt)
+	local inv = invoice:new(appt, self._worldTime)	
+	local mv = invoiceVisualizer:new(inv)
+	local sw = love.graphics:getWidth() / 2
+	local sh = love.graphics:getHeight()
+
+	mv:position(0, 0)	
+	mv:size(sw, sh)
+	
+	self._visualizer:addOverlay(mv)
+	mv.onClose = 
+		function()			
+			self._visualizer:removeOverlay(mv)			
+		end
+	
 end
 
 -- show the calendar for selecting an appointment time
@@ -259,7 +279,7 @@ end
 
 --
 function _M:releaseVehicle(apt)
-	self._garage:bankAccountInc(1000)
+	self._garage:bankAccountInc(apt:invoice():total())
 	
 	local vehicle = apt:customer():vehicle()	
 	
@@ -438,24 +458,26 @@ function _M:keyreleased(key)
 		if v then
 			local problem = v:currentProblem()
 			if problem then
-				if not problem:currentDiagnosis():isFinished() then					
+				local attempt = problem:currentAttempt()
+				
+				if not attempt:diagnosis():isFinished() then					
 					self._hero:startDiagnose()
 
 					v.onFinishDiagnosis = function(problem)	
 						self._worldTime:rate(3)				
 						self._hero:stopDiagnose()
 						problem:correctlyDiagnose()
-						self:popUpTextDialog('I think this vehicle has ' .. problem:currentDescription().name)
+						self:popUpTextDialog('I think this vehicle has ' .. attempt:description().name)
 					end			
 					
 					self:popUpTextDialog('A problem was found!')
-				elseif not problem:currentRepair():isFinished() then
+				elseif not attempt:repair():isFinished() then
 					self._hero:startRepair()
 					
 					v.onFinishRepair = function(problem)	
 						self._worldTime:rate(3)	
 						self._hero:stopRepair()
-						self:popUpTextDialog('The problem with ' .. problem:currentDescription().name .. ' has been fixed!')
+						self:popUpTextDialog('The problem with ' .. attempt:description().name .. ' has been fixed!')
 					end			
 				end
 			else
@@ -465,7 +487,7 @@ function _M:keyreleased(key)
 	end
 			
 	if key == '5' then
-		local v = self._garage:workingBay(1)
+		local v = self._hero:focusedVehicle()
 		if v then					
 			v:abandonCurrentProblem()
 		end
@@ -473,6 +495,13 @@ function _M:keyreleased(key)
 	
 	if key == '6' then
 		self:showCalendar()
+	end
+	
+	if key == '7' then
+		local v = self._hero:focusedVehicle()
+		if v then
+			self:showInvoice(v:customer():appointment())
+		end
 	end
 end
 

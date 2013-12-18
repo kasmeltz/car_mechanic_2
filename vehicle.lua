@@ -92,7 +92,8 @@ function _M:updateDiagnosis(dt)
 	local problem = self:currentProblem()
 	
 	if problem then
-		local diagnosis = problem:currentDiagnosis()
+		local attempt = problem:currentAttempt()
+		local diagnosis = attempt:diagnosis()
 		if diagnosis and not diagnosis:isFinished() then
 			local result = diagnosis:update(dt)
 
@@ -114,7 +115,8 @@ function _M:updateRepair(dt)
 	local problem = self:currentProblem()
 	
 	if problem then
-		local repair = problem:currentRepair()
+		local attempt = problem:currentAttempt()
+		local repair = attempt:repair()
 		if repair and not repair:isFinished() then				
 			local result = repair:update(dt)
 

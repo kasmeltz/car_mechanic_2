@@ -57,4 +57,10 @@ function _M:arrive(gt)
 	self._customer:arrive(gt)
 end
 
+--
+function _M:invoice(v)
+	if not v then return self._invoice end
+	self._invoice = v
+end
+
 return _M

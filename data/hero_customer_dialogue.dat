@@ -451,7 +451,19 @@ return
 		{
 			{
 				line = function() return 'Hi ' .. hero:firstName() .. ', I\' here for my ' .. vehicle:vehicleType() .. '.' end,
-				next = function() return 'hero_vehicle_ready' end
+				next = function() return 'hero_generate_invoice' end
+			}
+		},		
+	},
+	hero_generate_invoice =
+	{
+		actor = 'h', 
+		options = 
+		{
+			{
+				line = function() return 'It\'s all ready. Let me just get the invoice for you....' end,
+				next = function() return 'hero_vehicle_ready' end,
+				onChoose = function() world:showInvoice(appointment) end
 			}
 		},		
 	},
@@ -461,7 +473,7 @@ return
 		options = 
 		{
 			{
-				line = function() return 'Here it is!' end,
+				line = function() return 'Ok here are the keys ' .. customer:firstName() .. '. Have a good day!' end,
 				next = function() return '' end,
 				onChoose = function() world:releaseVehicle(appointment) end
 			}
