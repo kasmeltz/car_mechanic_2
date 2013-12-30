@@ -1,11 +1,14 @@
 local 	setmetatable, ipairs, love, print = 
 		setmetatable, ipairs, love, print
 		
+local overlay = require 'overlay'
+local class = require 'class'
+	
 module ('dialogueVisualizer')
 
 --
 function _M:new(dialogue)
-	local o = {}
+	local o = overlay:new()
 	
 	o._dialogue = dialogue
 	
@@ -22,9 +25,8 @@ function _M:new(dialogue)
 	
 	o._blocksKeys = true
 		
-	self.__index = self
-	
-	return setmetatable(o, self)
+	self.__index = self	
+	return class.extend(o, self)
 end
 
 --
@@ -76,24 +78,20 @@ end
 
 --
 function _M:draw()			
+	self:drawBorder()
+	
 	local sw = love.graphics:getWidth()
 	local sh = love.graphics:getHeight()
 	
 	local font = love.graphics.getFont()
 	local fh = font:getHeight()
 	
-	love.graphics.setColor(200, 200, 200, 255)
-	love.graphics.rectangle('fill', 30, 30, sw - 60, sh - 60)
-	love.graphics.setColor(32, 32, 32, 255)
-	love.graphics.rectangle('fill', 50, 50, sw - 100, sh - 100)
-
 	love.graphics.setColor(50, 75, 50, 255)
 	love.graphics.rectangle('fill', self._heroPosition[1], self._heroPosition[2], self._heroSize[1], self._heroSize[2])
 	love.graphics.setColor(75, 50, 50, 255)
 	love.graphics.rectangle('fill', self._otherPosistion[1], self._otherPosistion[2], self._otherSize[1], self._otherSize[2])
 	love.graphics.setColor(255, 255, 255, 255)	
-		
-	
+			
 	if self._heroOptions then				
 		local sx = self._heroPosition[1]
 		local sy = self._heroPosition[2]		
@@ -178,11 +176,6 @@ function _M:otherSize(x, y)
 	
 	self._otherSize[1] = x
 	self._otherSize[2] = y
-end
-
---
-function _M:blocksKeys()
-	return self._blocksKeys
 end
 
 --

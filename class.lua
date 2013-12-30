@@ -8,7 +8,9 @@ function extend(base, ext)
 	if not ext.__index then ext.__index = {} end
 	
 	for k, v in pairs(base.__index) do
-		if not ext.__index[k] then
+		if ext.__index[k] then
+			ext.__index['b_' .. k] = v
+		else
 			ext.__index[k] = v
 		end
 	end

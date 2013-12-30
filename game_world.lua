@@ -6,6 +6,8 @@ local customer = require 'customer'
 local invoice = require 'invoice'
 local gameTime = require 'gameTime'
 local dialogueFactory = require 'dialogue_factory'
+local heroSkillVisualizer = require 'hero_skill_visualizer'
+local heroSelectVisualizer = require 'hero_select_visualizer'
 local portraitVisualizer = require 'portrait_visualizer'
 local dialogueVisualizer = require 'dialogue_visualizer'
 local customerSkillVisualizer = require 'customer_skill_visualizer'
@@ -65,6 +67,24 @@ function _M:startNew()
 		
 		self:popUpTextDialog(msg)
 	end	
+	
+	self:heroSelect()
+end
+
+function _M:heroSelect()
+	local mv = heroSelectVisualizer:new(self._worldTime)
+	local sw = love.graphics:getWidth()
+	local sh = love.graphics:getHeight()
+
+	mv:position(0, 0)	
+	mv:size(sw, sh)
+	
+	self._visualizer:addOverlay(mv)
+	mv.onClose = 
+		function()	
+			self._hero = mv:createdHero()
+			self._visualizer:removeOverlay(mv)			
+		end
 end
 
 --
@@ -154,8 +174,17 @@ function _M:startTalkingCustomer(apt)
 	
 	local sw = love.graphics:getWidth()
 	local sh = love.graphics:getHeight()
-	local pw = 100
-	local ph = 100
+	
+	local heroPortrait = portraitVisualizer:new(self._hero, self._worldTime)
+	heroPortrait:position(50, 50)	
+	
+	local pw, ph = heroPortrait:size()
+	
+	local otherPortrait = portraitVisualizer:new(apt:customer(), self._worldTime)
+	otherPortrait:position(sw - 50 - pw, 50)	
+	
+	local customerReading = customerSkillVisualizer:new(self._hero, apt:customer())
+	customerReading:position(sw - 50 - 300, 50 + ph + 50)
 	
 	local dw = (sw - 100) / 2 - 50
 	
@@ -165,27 +194,20 @@ function _M:startTalkingCustomer(apt)
 	self:setStartingDialogue(apt, d)	
 	
 	local dialogueVisualizer = dialogueVisualizer:new(d)
+	
+	dialogueVisualizer:borderColor(120,140,140,255)
+	dialogueVisualizer:backgroundColor(20,40,40,255)
+	dialogueVisualizer:position(30, 30)
+	dialogueVisualizer:size(sw - 60, sh - 60)
 
 	dialogueVisualizer:heroPosition(50, 50 + ph + 300)
-	dialogueVisualizer:heroSize(dw, 175)
+	dialogueVisualizer:heroSize(dw, 125)
 	dialogueVisualizer:otherPosition(sw - 50 - dw, 50 + ph + 300)
-	dialogueVisualizer:otherSize(dw, 175)
+	dialogueVisualizer:otherSize(dw, 125)
 	
-	self._visualizer:addOverlay(dialogueVisualizer)
-	
-	local customerReading = customerSkillVisualizer:new(self._hero, apt:customer())
-	customerReading:position(sw - 50 - 300, 50 + ph + 50)
-	
-	self._visualizer:addOverlay(customerReading)
-	
-	local heroPortrait = portraitVisualizer:new(self._hero, self._worldTime)
-	heroPortrait:position(50, 50)	
-	
-	self._visualizer:addOverlay(heroPortrait)
-	
-	local otherPortrait = portraitVisualizer:new(apt:customer(), self._worldTime)
-	otherPortrait:position(sw - 50 - pw, 50)	
-	
+	self._visualizer:addOverlay(dialogueVisualizer)	
+	self._visualizer:addOverlay(customerReading)			
+	self._visualizer:addOverlay(heroPortrait)		
 	self._visualizer:addOverlay(otherPortrait)
 
 	self._heroPortrait = heroPortrait
@@ -214,6 +236,23 @@ function _M:stopTalkingCustomer(apt)
 	self._otherPortrait = nil
 	self._customerReading = nil	
 	self._dialogueVisualizer = nil	
+end
+
+--
+function _M:showHeroSkills()
+	local mv = heroSkillVisualizer:new(self._hero, self._worldTime)
+
+	local sw = love.graphics:getWidth()
+	local sh = love.graphics:getHeight()
+
+	mv:position(0, 0)	
+	mv:size(sw, sh)
+	
+	self._visualizer:addOverlay(mv)
+	mv.onClose = 
+		function()			
+			self._visualizer:removeOverlay(mv)			
+		end
 end
 
 --
@@ -477,7 +516,8 @@ function _M:keyreleased(key)
 					v.onFinishRepair = function(problem)	
 						self._worldTime:rate(3)	
 						self._hero:stopRepair()
-						self:popUpTextDialog('The problem with ' .. attempt:description().name .. ' has been fixed!')
+						self:popUpTextDialog('The problem with ' .. 
+							attempt:description().name .. ' has been fixed!')
 					end			
 				end
 			else
@@ -501,7 +541,11 @@ function _M:keyreleased(key)
 		local v = self._hero:focusedVehicle()
 		if v then
 			self:showInvoice(v:customer():appointment())
-		end
+		end	
+	end
+	
+	if key == '8' then		
+		self:showHeroSkills()
 	end
 end
 

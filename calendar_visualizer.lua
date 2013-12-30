@@ -1,11 +1,10 @@
-local gameTime = require 'gametime'
-local visitResolver = require 'visit_resolver'
-
 local	table, pairs, ipairs, love, print =
 		table, pairs, ipairs, love, print 
 
 local overlay = require 'overlay'
 local class = require 'class'
+local gameTime = require 'gametime'
+local visitResolver = require 'visit_resolver'
 
 module ('calendarVisualizer')
 
@@ -29,7 +28,6 @@ function _M:new(scheduler, calendar, gt, firstHour, lastHour)
 	
 	o._viewMode = 'week'	
 	
-	o._borderWidth = 20
 	o._weekPercentage = 0.75
 	
 	self.__index = self	

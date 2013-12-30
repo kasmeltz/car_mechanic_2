@@ -18,23 +18,8 @@ function _M:new(invoice)
 end
 
 --
-function _M:update(dt)
-end
-
---
 function _M:draw()	
-	local w = self._size[1]
-	local h = self._size[2]
-	local borderWidth = 20
-	
-	love.graphics.setColor(200, 200, 200, 255)
-	love.graphics.rectangle('fill', self._position[1], self._position[2], w, h)
-	love.graphics.setColor(32, 32, 32, 255)
-	love.graphics.rectangle('fill', 
-		self._position[1] + borderWidth / 2, self._position[2] + borderWidth / 2, 
-		w - borderWidth, h - borderWidth)
-	
-	love.graphics.setColor(255, 255, 255, 255)
+	self:drawBorder()
 	
 	local appointment = self._invoice:appointment()
 	local customer = appointment:customer()

@@ -35,3 +35,4 @@ end
 function love.keyreleased(key)
 	gw:keyreleased(key)
 end
+

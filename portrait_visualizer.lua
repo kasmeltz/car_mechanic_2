@@ -10,6 +10,7 @@ module ('portraitVisualizer')
 
 local PORTRAIT_ROOT_FOLDER = 'images/portraits/'
 local imagePositions = {}
+local loadedImages = {}
 
 ---
 function _M.initialize()
@@ -69,6 +70,8 @@ end
 --
 function _M:loadImages()
 	self._images = {}
+	self._offsets = {}		
+	local imageNames = {}
 	
 	local c = self._customer	
 	local face = c:face()
@@ -84,7 +87,18 @@ function _M:loadImages()
 			
 		local path = PORTRAIT_ROOT_FOLDER .. fileName .. '.png'
 		
-		self._images[fileName] = love.graphics.newImage( path )
+		if not loadedImages[fileName] then
+			loadedImages[fileName] = love.graphics.newImage( path )
+		end
+		
+		
+		if k == 'shape' then
+			table.insert(self._images, 1, loadedImages[fileName])
+			table.insert(imageNames, 1, fileName)
+		else
+			table.insert(self._images, loadedImages[fileName])
+			table.insert(imageNames, fileName)
+		end
 	end
 	
 	local minX = math.huge
@@ -92,10 +106,10 @@ function _M:loadImages()
 	local minY = math.huge
 	local maxY = -math.huge
 	
-	for k, img in pairs(self._images) do		
+	for k, img in ipairs(self._images) do		
 		local w = img:getWidth()
-		local h = img:getHeight()		
-		local offset = imagePositions[k]
+		local h = img:getHeight()	
+		local offset = imagePositions[imageNames[k]]
 		local ox = offset[1]
 		local oy = offset[2]
 		
@@ -111,6 +125,8 @@ function _M:loadImages()
 		if oy + h > maxY then
 			maxY = oy + h
 		end
+		
+		self._offsets[k] = offset
 	end
 			
 	local br = {}
@@ -119,28 +135,27 @@ function _M:loadImages()
 	br[3] = maxX
 	br[4] = maxY
 	
-	self._middleX = (br[3] + br[1]) / 2		
+	self._size[1] = br[3] - br[1] + (self._borderWidth * 2)
+	self._size[2] = br[4] - br[2] + (self._borderWidth * 2)
 	
-	self._boundingRectangle = br
-end
-
---
-function _M:update(dt)
+	self._middleX = self._position[1] + (self._size[1] / 2)
 end
 
 --
 function _M:draw()	
+	self:drawBorder()
+
 	local name = self._customer:name()
 	local font = love.graphics.getFont()
-	local sx = self._position[1]
-	local sy = self._position[2]	
-	for k, img in pairs(self._images) do		
-		local offset = imagePositions[k]
+	local sx = self._position[1] + self._borderWidth
+	local sy = self._position[2] + self._borderWidth
+	for k, img in ipairs(self._images) do	
+		local offset = self._offsets[k]
 		love.graphics.draw(img, sx + offset[1], sy + offset[2])
 	end
 		
 	sx = self._position[1] + self._middleX - (font:getWidth(name) / 2)
-	sy = self._position[2] + self._boundingRectangle[4] + font:getHeight()
+	sy = self._position[2] + self._size[2] + font:getHeight()
 	love.graphics.print(name, sx, sy)
 end
 

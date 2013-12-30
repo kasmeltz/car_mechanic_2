@@ -1,50 +1,19 @@
-require 'table_ext'
+local overlay = require 'overlay'
+local class = require 'class'
 
-local 	os, setmetatable, ipairs, table, pairs, tostring, love =
-		os, setmetatable, ipairs, table, pairs, tostring, love
+local 	os, ipairs, table, pairs, tostring, love =
+		os, ipairs, table, pairs, tostring, love
 		
 module ('gameWorldVisualizer')
 
 -- create a new game world visualizer
 function _M:new(world)
-	local o = {}
+	local o = overlay:new()	
 	
 	o._world = world
-	o._overlays = {}
 		
-	self.__index = self
-	
-	return setmetatable(o, self)
-end
-
---
-function _M:addOverlay(ov, position)	
-	local position = position or #self._overlays + 1
-	table.insert(self._overlays, position, ov)
-end
-
---
-function _M:removeOverlay(ov)
-	table.removeObject(self._overlays, ov)
-end
-
---
-function _M:overlayToBottom(ov)
-	self:removeOverlay(ov)
-	self:addOverlay(ov, 1)
-end
-
--- 
-function _M:overlayToTop(ov)
-	self:removeOverlay(ov)
-	self:addOverlay(ov)
-end
-
--- update the world visualizer every game tick
-function _M:update(dt)
-	for _, ov in ipairs(self._overlays) do
-		ov:update(dt)
-	end
+	self.__index = self	
+	return class.extend(o, self)
 end
 
 --
@@ -168,22 +137,7 @@ function _M:draw(dt)
 		end
 	end
 		
-	for _, ov in ipairs(self._overlays) do
-		ov:draw()
-	end		
-end
-
--- called when a key is released (event)
-function _M:keyreleased(key)
-	for i = #self._overlays, 1, -1 do
-		local ov = self._overlays[i]
-		if ov.keyreleased then
-			ov:keyreleased(key)
-			if (ov.blocksKeys and ov:blocksKeys()) then
-				return true
-			end
-		end
-	end	
+	self:b_draw()
 end
 
 return _M

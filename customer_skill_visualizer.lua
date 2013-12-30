@@ -71,7 +71,8 @@ function _M:draw()
 	end
 	
 	sx = self._position[1]
-	love.graphics.print('(Correct ' .. self._accuracy[1] .. '-' .. self._accuracy[2] .. '% of the time, all the time)!', sx, sy)
+	love.graphics.print('(Correct ' .. self._accuracy[1] .. '-' .. 
+		self._accuracy[2] .. '% of the time, all the time)!', sx, sy)
 end
 
 return _M

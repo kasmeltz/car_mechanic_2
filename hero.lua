@@ -1,14 +1,16 @@
 local	math, pairs =
 		math, pairs
-		
-local personFactory = require 'customer_factory'
 
+local personFactory = require 'customer_factory'		
 local class = require 'class'
 local person = require 'person'
 
 module('hero')
 
 _M.PERSONAL_INTERACTION = 1
+_M.CAR_KNOWLEDGE = 2
+_M.BUSINESS_SAVY = 3
+
 _M.skillList =
 {
 	{ 
@@ -19,39 +21,62 @@ _M.skillList =
 			{ 90, 80, 70, 60, 50, 40, 30 },
 			{ 0, 20, 40, 60, 80, 90, 100 },
 			{ 100, 200, 300, 400, 500, 600, 700 }
-		}	
-	}		
+		},
+		pointsRequired = { 10, 20, 30, 40, 50, 60, 70 }
+	},
+	{
+		name = 'Car Knowledge',
+		levels = 
+		{
+			{ 10, 20, 30, 40, 50, 60, 70, 80, 90 }
+		},
+		pointsRequired = { 10, 20, 30, 40, 50, 60, 70, 80, 90 }
+	},		
+	{
+		name = 'Business Savy',
+		levels =
+		{
+			{ 10, 20, 30, 40, 50, 60, 70, 80, 90 }
+		},
+		pointsRequired = { 10, 20, 30, 40, 50, 60, 70, 80, 90 }
+	}
 }
 
 -- returns a new hero object
 function _M:new()
 	local o = person:new()
-	
-	o._birthYear = 1990
+
 	o._sex = personFactory.sexes[1]
 	o._ethnicity = personFactory.ethnicities[1]
-	o._firstName = 'Harry'
-	o._lastName = 'Arms'
-	
-	o._skillPoints = 0
-	
-	o._skillLevels = 
-	{
-		1
-	}
+	o._firstName = ''
+	o._lastName = ''
 	
 	-- face
 	o._face = { }	
-	o._face.shape = math.random(1, 6)
-	o._face.eyes = math.random(1, 6)
-	o._face.ears = math.random(1, 6)
-	o._face.nose = math.random(1, 6)
-	o._face.mouth = math.random(1, 6)
-	o._face.hair = math.random(1, 6)
-	o._face.facialhair = math.random(1, 6)
+	o._face.shape = 1
+	o._face.eyes = 1
+	o._face.ears = 1
+	o._face.nose = 1
+	o._face.mouth = 1
+	o._face.hair = 1
+	o._face.facialhair = 1
+	
+	o._skillPoints = 1000
+	
+	o._skillLevels = 
+	{
+		1, 1, 1
+	}
 
 	self.__index = self
 	return class.extend(o, self)
+end
+
+--
+function _M:skillPoints(v)
+	if not v then
+		return self._skillPoints 
+	end
 end
 
 --
@@ -63,6 +88,33 @@ function _M:skillPointsInc(v)
 	end	
 end
 
+--
+function _M:skillLevel(skill, v)
+	if not v then
+		return self._skillLevels[skill]
+	end
+	
+	self._skillLevels[skill] = v
+end
+
+--
+function _M:pointsToUpgrade(skill)
+	local skillLevel = self._skillLevels[skill]
+	
+	if skillLevel < #skillList[skill].pointsRequired then
+		return skillList[skill].pointsRequired[skillLevel + 1]	
+	end
+end
+
+--
+function _M:levelUpSkill(skill)	
+	local pointsRequired = self:pointsToUpgrade(skill)
+	if pointsRequired and self._skillPoints >= pointsRequired then
+		self._skillPoints = self._skillPoints - pointsRequired
+		self._skillLevels[skill] = self._skillLevels[skill] + 1
+	end
+end
+	
 --
 function _M:getSkill(skill, subSkill)
 	local skillLevel = self._skillLevels[skill]
