@@ -78,10 +78,26 @@ end
 
 --
 function _M:centerPrint(text, sy, font)
-	local font = font or love.graphics:getFont()
+	local oldFont
+	if font then
+		oldFont = love.graphics.getFont()
+		love.graphics.setFont(font)		
+	else
+		font = love.graphics.getFont()
+	end
 	local textWidth = font:getWidth(text)
 	local sx = self._position[1] + (self._size[1] / 2) - (textWidth / 2)
+	
+	if sy == -1 then
+		local textHeight = font:getHeight()
+		sy = self._position[2] + (self._size[2] / 2) - (textHeight / 2)
+	end
+	
 	love.graphics.print(text, sx, sy)
+	
+	if oldFont then
+		love.graphics.setFont(oldFont)		
+	end
 end
 
 --
@@ -133,9 +149,9 @@ function _M:topOverlay()
 end
 
 -- update the world visualizer every game tick
-function _M:update(dt)
+function _M:update(gt, dt)
 	for _, ov in ipairs(self._overlays) do
-		ov:update(dt)
+		ov:update(gt, dt)
 	end
 end
 
@@ -145,13 +161,13 @@ function _M:drawBorder()
 	local h = self._size[2]
 	local borderWidth = self._borderWidth
 	
-	love.graphics.setColor(self._borderColor)
+	love.graphics.setColor(self:borderColor())
 	love.graphics.rectangle('fill', self._position[1], self._position[2], w, h)
-	love.graphics.setColor(self._backgroundColor)
+	love.graphics.setColor(self:backgroundColor())
 	love.graphics.rectangle('fill', 
 		self._position[1] + borderWidth / 2, self._position[2] + borderWidth / 2, 
 		w - borderWidth, h - borderWidth)
-	
+
 	love.graphics.setColor(255, 255, 255, 255)
 end
 	

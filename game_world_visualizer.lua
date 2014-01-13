@@ -35,8 +35,7 @@ function _M:draw(dt)
 	
 	if holiday then
 		love.graphics.print('Closed for ' .. holiday.name, 300, 300)
-	end
-	
+	end	
 	
 	local sy 
 	

@@ -8,6 +8,7 @@ local gameTime = require 'gameTime'
 local dialogueFactory = require 'dialogue_factory'
 local heroSkillVisualizer = require 'hero_skill_visualizer'
 local heroSelectVisualizer = require 'hero_select_visualizer'
+local titleVisualizer = require 'title_visualizer'
 local portraitVisualizer = require 'portrait_visualizer'
 local dialogueVisualizer = require 'dialogue_visualizer'
 local customerSkillVisualizer = require 'customer_skill_visualizer'
@@ -68,10 +69,12 @@ function _M:startNew()
 		self:popUpTextDialog(msg)
 	end	
 	
-	self:heroSelect()
+	self:heroSelect()	
 end
 
 function _M:heroSelect()
+	local font = love.graphics.newFont( 'fonts/ALGER.TTF', 72)
+	
 	local mv = heroSelectVisualizer:new(self._worldTime)
 	local sw = love.graphics:getWidth()
 	local sh = love.graphics:getHeight()
@@ -83,7 +86,19 @@ function _M:heroSelect()
 	mv.onClose = 
 		function()	
 			self._hero = mv:createdHero()
-			self._visualizer:removeOverlay(mv)			
+			self._visualizer:removeOverlay(mv)		
+
+			local openingTitle = titleVisualizer:new('Opening Day', 5, { 255, 255, 0, 255 }, font)
+			openingTitle:position(100, 50)	
+			openingTitle:size(sw - 200, 200)
+			openingTitle:borderColor(255, 255, 0, 255)
+			openingTitle:backgroundColor(10, 100, 10, 255)
+			
+			openingTitle.onClose = 
+				function()	
+					self._visualizer:removeOverlay(openingTitle)			
+				end		
+			self._visualizer:addOverlay(openingTitle)	
 		end
 end
 
@@ -370,10 +385,10 @@ function _M:update(dt)
 	local garage = self._garage
 	local hero = self._hero
 	
-	dt = worldTime:update(dt)	
+	local gt = worldTime:update(dt)	
 	
-	garage:update(dt)
-	hero:update(dt)
+	garage:update(gt, dt)
+	hero:update(gt, dt)
 	
 	if worldTime:dayAdvanced() then
 		self._holiday = self._calendar:holiday(worldTime)
@@ -441,7 +456,7 @@ function _M:update(dt)
 		end
 	end
 	
-	self._visualizer:update(dt)
+	self._visualizer:update(gt, dt)
 end
 
 --
