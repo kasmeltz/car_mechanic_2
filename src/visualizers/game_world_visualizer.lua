@@ -1,8 +1,9 @@
-local overlay = require 'overlay'
-local class = require 'class'
+local os, ipairs, table, pairs, tostring, love, print
+	= os, ipairs, table, pairs, tostring, love, print
 
-local 	os, ipairs, table, pairs, tostring, love =
-		os, ipairs, table, pairs, tostring, love
+local fontManager = require 'src/managers/fontManager'		
+local overlay = require 'src/visualizers/overlay'
+local class = require 'src/utility/class'
 		
 module ('gameWorldVisualizer')
 
@@ -27,11 +28,19 @@ function _M:draw(dt)
 	
 	local sw = love.graphics:getWidth()
 	local sh = love.graphics:getHeight()
-	
-	love.graphics.print(worldTime:tostring('%B %d, %Y - %I:%M:%S %p'), 0, 0)
+		
+	love.graphics.setFont(fontManager.load('fonts/ALGER.TTF', 36))
+
+	love.graphics.setColor(255, 255, 0, 255)
+	love.graphics.print(worldTime:tostring('%B %d, %Y'), 0, 0)
+	love.graphics.print(worldTime:tostring('%I:%M:%S %p'), 0, 36)
+
+	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.print(worldTime:rate().name, 400, 0)
+
+	love.graphics.setFont(fontManager.load('system', 12))	
 	
-	love.graphics.print('$' .. garage:bankAccount(), 0, 20)	
+	love.graphics.print('$' .. garage:bankAccount(), 0, 72)	
 	
 	if holiday then
 		love.graphics.print('Closed for ' .. holiday.name, 300, 300)

@@ -1,19 +1,17 @@
 local 	setmetatable, ipairs, love, print = 
 		setmetatable, ipairs, love, print
 		
-local overlay = require 'overlay'
-local class = require 'class'
+local overlay = require 'src/visualizers/overlay'
+local class = require 'src/utility/class'
 	
 module ('titleVisualizer')
 
 --
-function _M:new(msg, timeToLive, color, font)
+function _M:new(msg, timeToLive)
 	local o = overlay:new()
 	
 	o._msg = msg
 	o._timeToLive = timeToLive	
-	o._color = color
-	o._font = font			
 	o._timeAlive = 0
 			
 	self.__index = self	
@@ -36,8 +34,19 @@ function _M:fadedColor(c)
 end
 
 --
-function _M:color()
-	return self:fadedColor(self._color)
+function _M:font(v)
+	if not v then
+		return self:fadedColor(self._font)
+	end
+	self._font = v
+end
+
+--
+function _M:textColor(v)
+	if not v then
+		return self:fadedColor(self._textColor)
+	end
+	self._textColor = v
 end
 
 --
@@ -61,8 +70,6 @@ end
 --
 function _M:update(gt, dt)		
 	self._timeAlive = self._timeAlive + dt
-	--if self._timeAlive >= self._timeToLive - 1 then
---		self:fadeOut()
 	if self._timeAlive >= self._timeToLive then
 		if self.onClose() then
 			self.onClose()
@@ -73,7 +80,7 @@ end
 --
 function _M:draw()		
 	self:drawBorder()
-	love.graphics.setColor(self:color())
+	love.graphics.setColor(self:textColor())
 	self:centerPrint(self._msg, -1, self._font)
 	love.graphics.setColor(255,255,255,255)	
 end

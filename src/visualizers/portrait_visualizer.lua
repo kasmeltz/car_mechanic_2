@@ -1,6 +1,7 @@
 local	table, string, pairs, ipairs, io, love, math, print =	
 		table, string, pairs, ipairs, io, love, math, print
 
+local imageManager = require 'src/managers/imageManager'
 local customerFactory = require 'src/simulation/customer_factory'
 local overlay  = require 'src/visualizers/overlay'
 local class = require 'src/utility/class'
@@ -9,7 +10,6 @@ module ('portraitVisualizer')
 
 local PORTRAIT_ROOT_FOLDER = 'images/portraits/'
 local imagePositions = {}
-local loadedImages = {}
 
 ---
 function _M.initialize()
@@ -86,16 +86,11 @@ function _M:loadImages()
 			
 		local path = PORTRAIT_ROOT_FOLDER .. fileName .. '.png'
 		
-		if not loadedImages[fileName] then
-			loadedImages[fileName] = love.graphics.newImage( path )
-		end
-		
-		
 		if k == 'shape' then
-			table.insert(self._images, 1, loadedImages[fileName])
+			table.insert(self._images, 1, imageManager.load(path))
 			table.insert(imageNames, 1, fileName)
 		else
-			table.insert(self._images, loadedImages[fileName])
+			table.insert(self._images, imageManager.load(path))
 			table.insert(imageNames, fileName)
 		end
 	end

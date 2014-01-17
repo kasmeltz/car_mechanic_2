@@ -1,8 +1,8 @@
 local	table, string, pairs, ipairs, io, love, math, tostring =	
 		table, string, pairs, ipairs, io, love, math, tostring
 
-local overlay  = require 'overlay'
-local class = require 'class'
+local overlay = require 'src/visualizers/overlay'
+local class = require 'src/utility/class'
 
 module ('invoiceVisualizer')
 

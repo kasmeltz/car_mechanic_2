@@ -6,8 +6,13 @@ require 'src/entities/actor'
 local Objects = objects
 
 local spriteSheetManager = require 'src/managers/spriteSheetManager'
+local sceneManager = require 'src/managers/gameSceneManager'
 local inputManager = require 'src/managers/gameInputManager'
-		
+local imageManager = require 'src/managers/imageManager'
+local fontManager = require 'src/managers/fontManager'
+
+local gameScene = require 'src/entities/gameScene'
+local camera = require 'src/entities/camera'		
 local hero = require 'src/simulation/hero' 
 local visitResolver = require 'src/simulation/visit_resolver'
 local customerScheduler = require 'src/simulation/customer_scheduler'
@@ -37,6 +42,7 @@ function _M:new()
 	local o = {}
 
 	self.__index = self
+	self._messageAlerts = {}
 	
 	return setmetatable(o, self)
 end
@@ -49,11 +55,55 @@ end
 function _M:load(rootFolder)
 end
 
+--
+function _M:createScene()
+	local gs = gameScene:new()	
+	gs._orderedDraw = true
+	gs._showCollisionBoxes = true
+	
+	local c = camera:new()
+	gs:camera(c)	
+	
+	local sw = love.graphics:getWidth()
+	local sh = love.graphics:getHeight()
+	
+	c:viewport(0, 0, sw, sh)
+	c:window(0, 0, sw, sh)
+	c:center(sw / 2, sh / 2)
+	
+	self._drawOrder = 100000
+	
+	gs.keypressed = function (gs, key)
+		self:keypressed(key)		
+	end	
+	
+	gs.keyreleased = function (gs, key)
+		self:keyreleased(key)		
+	end	
+
+	gs:addComponent(self)
+
+	local backgroundComponent = 
+	{	
+		_drawOrder = 0, 
+		_image = imageManager.load('images/backgrounds/asphalt.jpg'),
+		draw = function(self, camera)
+			local x, y = camera:transform(0, 0)
+			love.graphics.draw(self._image, x, y)
+		end		
+	}
+	
+	gs:addComponent(backgroundComponent)	
+
+	local wt = gameTime:new()
+	wt:setTime(2013, 1, 2, 7, 0, 0)
+	self:worldTime(wt)
+
+	return gs
+end
+
 -- starts a new game world
 function _M:startNew()
-	self._worldTime = gameTime:new()
-	self._worldTime:setTime(2013, 1, 2, 7, 0, 0)
-
 	self._garage = garage:new(self)
 	self._visualizer = gameWorldVisualizer:new(self)		
 	
@@ -73,10 +123,17 @@ function _M:startNew()
 			msg = 'Your garage\'s reputation has risen by: ' .. delta
 		end
 		
-		self:popUpTextDialog(msg)
+		self:messageAlert(msg)
 	end	
 	
-	self:heroSelect()	
+	local gs = self:createScene()
+			
+	sceneManager.removeScene('mainGame')
+	sceneManager.addScene('mainGame', gs)
+
+	sceneManager.switch('mainGame')
+					
+	self:heroSelect()		
 end
 
 --
@@ -87,21 +144,19 @@ function _M:initializeHero()
 	actor:direction('down')
 	actor:animation('walk')
 	actor:position(300, 200)	
-	actor:update(0)
+	actor:update(0, 0)
 	self._scene:addComponent(actor)
 	self._hero:actor(actor)	
 	
 	self._hero.onSkillPointInc = function(delta, value)
-		self:popUpTextDialog('You have gained: ' .. delta .. ' skill point(s)')
+		self:messageAlert('You have gained: ' .. delta .. ' skill point(s)')
 	end		
 				
-	self._daysSchedule = self._scheduler:getNextDay(self._garage, self._worldTime)	
+	self._daysSchedule = self._scheduler:getNextDay(self._garage, self:worldTime())
 end
 
 function _M:heroSelect()
-	local font = love.graphics.newFont( 'fonts/ALGER.TTF', 72)
-	
-	local mv = heroSelectVisualizer:new(self._worldTime)
+	local mv = heroSelectVisualizer:new(self:worldTime())
 	local sw = love.graphics:getWidth()
 	local sh = love.graphics:getHeight()
 
@@ -114,18 +169,20 @@ function _M:heroSelect()
 			self._hero = mv:createdHero()
 			self._visualizer:removeOverlay(mv)	
 			self:initializeHero()
+				
+			local title = titleVisualizer:new('Opening Day', 5)
+			title:textColor { 255, 255, 0, 255 }
+			title:font(fontManager.load('fonts/ALGER.TTF', 72))
+			title:position(100, 50)	
+			title:size(sw - 200, 200)
+			title:borderColor(255, 255, 0, 255)
+			title:backgroundColor(10, 100, 10, 255)
 			
-			local openingTitle = titleVisualizer:new('Opening Day', 5, { 255, 255, 0, 255 }, font)
-			openingTitle:position(100, 50)	
-			openingTitle:size(sw - 200, 200)
-			openingTitle:borderColor(255, 255, 0, 255)
-			openingTitle:backgroundColor(10, 100, 10, 255)
-			
-			openingTitle.onClose = 
+			title.onClose = 
 				function()	
-					self._visualizer:removeOverlay(openingTitle)			
+					self._visualizer:removeOverlay(title)			
 				end		
-			self._visualizer:addOverlay(openingTitle)	
+			self._visualizer:addOverlay(title)	
 		end
 end
 
@@ -135,8 +192,12 @@ function _M:unresolvedAppointements()
 end
 
 --
-function _M:worldTime()
-	return self._worldTime
+function _M:worldTime(v)
+	if not v then
+		return self._scene._worldTime
+	end
+	
+	self._scene._worldTime = v
 end
 
 --
@@ -172,20 +233,21 @@ end
 --
 function _M:arriveAppointment(apt)
 	local this = self
+
+	apt:arrive(self:worldTime())
 	
-	apt:arrive(self._worldTime)
-			
 	local actor = Objects.Actor{ 
 		_spriteSheet = spriteSheetManager.sheet('male_body_light')
 	}	
 	
 	actor._CUSTOMER = true
-	actor._appointment = apt
+	actor._appointment = apt	
 	
-	function actor:update(dt)
-		Objects.Actor.update(self, dt)		
+	function actor:update(dt, gt)
+		Objects.Actor.update(self, dt, gt)
 		
 		if self._position[1] < 10 then
+			self._position[1] = 10
 			self:velocity(0, 0)
 		end
 		
@@ -198,10 +260,12 @@ function _M:arriveAppointment(apt)
 	actor:animation('walk')
 	actor:position(1000, 600)
 	actor:velocity(-100, 0)
-	actor:update(0)
+	actor:update(0, 0)
 	self._scene:addComponent(actor)	
 	
-	self._worldTime:rate(3)	
+	self:messageAlert(apt:customer():name() .. ' has arrived!')		
+			
+	self:worldTime():rate(3)	
 end
 
 --
@@ -240,6 +304,20 @@ function _M:debugApptDetails(msg, apt)
 end
 
 --
+function _M:attemptToTalk()
+	local actor = self._hero:actor()
+	if not actor then return end
+	for _, entity in pairs(self._scene._updateables) do
+		if entity._CUSTOMER then				
+			if (not entity._hasBeenTalkedTo and actor:distanceFrom(entity) < 64) then
+				self:startTalkingCustomer(entity)
+				break
+			end
+		end
+	end
+end
+
+--
 function _M:startTalkingCustomer(actor)
 	local apt = actor._appointment
 	
@@ -248,12 +326,12 @@ function _M:startTalkingCustomer(actor)
 	local sw = love.graphics:getWidth()
 	local sh = love.graphics:getHeight()
 	
-	local heroPortrait = portraitVisualizer:new(self._hero, self._worldTime)
+	local heroPortrait = portraitVisualizer:new(self._hero, self:worldTime())
 	heroPortrait:position(50, 50)	
 	
 	local pw, ph = heroPortrait:size()
 	
-	local otherPortrait = portraitVisualizer:new(apt:customer(), self._worldTime)
+	local otherPortrait = portraitVisualizer:new(apt:customer(), self:worldTime())
 	otherPortrait:position(sw - 50 - pw, 50)	
 	
 	local customerReading = customerSkillVisualizer:new(self._hero, apt:customer())
@@ -261,7 +339,7 @@ function _M:startTalkingCustomer(actor)
 	
 	local dw = (sw - 100) / 2 - 50
 	
-	self._worldTime:rate(3)		
+	self:worldTime():rate(3)		
 	
 	local d = dialogueFactory.newCustomerDialogue(self, apt)
 	self:setStartingDialogue(apt, d)	
@@ -313,11 +391,13 @@ function _M:stopTalkingCustomer(actor)
 	self._otherPortrait = nil
 	self._customerReading = nil	
 	self._dialogueVisualizer = nil	
+	
+	actor._hasBeenTalkedTo = true
 end
 
 --
 function _M:showHeroSkills()
-	local mv = heroSkillVisualizer:new(self._hero, self._worldTime)
+	local mv = heroSkillVisualizer:new(self._hero, self:worldTime())
 
 	local sw = love.graphics:getWidth()
 	local sh = love.graphics:getHeight()
@@ -334,7 +414,7 @@ end
 
 --
 function _M:showInvoice(appt)
-	local inv = invoice:new(appt, self._worldTime)	
+	local inv = invoice:new(appt, self:worldTime())
 	local mv = invoiceVisualizer:new(inv)
 	local sw = love.graphics:getWidth() / 2
 	local sh = love.graphics:getHeight()
@@ -357,7 +437,7 @@ function _M:showCalendar()
 	local fh = self._garage:openingHour()
 	local lh = self._garage:closingHour() - 1
 	
-	local mv = calendarVisualizer:new(self._scheduler, self._calendar, self._worldTime, fh, lh)	
+	local mv = calendarVisualizer:new(self._scheduler, self._calendar, self:worldTime(), fh, lh)	
 	local sw = love.graphics:getWidth()
 	local sh = love.graphics:getHeight()
 
@@ -370,7 +450,7 @@ function _M:showCalendar()
 			self._selectedAppointmentTime = mv:selectedTime()
 			
 			print(self._selectedAppointmentTime:tostring('%c'))
-			print(self._worldTime:dateInFutureText(self._selectedAppointmentTime))
+			print(self:worldTime():dateInFutureText(self._selectedAppointmentTime))
 			
 			self._visualizer:removeOverlay(mv)			
 		end
@@ -426,6 +506,35 @@ function _M:acceptVehicle(apt)
 end
 
 --
+function _M:showNextMessageAlert()
+	if #self._messageAlerts > 0 then	
+		local msg = self._messageAlerts[1]
+		
+		local title = titleVisualizer:new(msg, 3.5)
+		title:textColor{ 255, 200, 200, 255 }
+		title:font(fontManager.load('system', 16))
+		title:position(0, love.graphics:getHeight() - 40)
+		title:size(love.graphics:getWidth(), 40)
+		title:borderColor(255, 0, 0, 255)
+		title:backgroundColor(20, 10, 10, 255)
+		
+		title.onClose = 
+			function()					
+				table.removeObject(self._messageAlerts, msg)
+				self._visualizer:removeOverlay(title)	
+				self:showNextMessageAlert()
+			end		
+		self._visualizer:addOverlay(title)		
+	end
+end
+
+--
+function _M:messageAlert(msg)
+	table.insert(self._messageAlerts, msg)
+	self:showNextMessageAlert()	
+end
+
+--
 function _M:popUpTextDialog(msg, x, y, w, h)
 	local x = x or 50
 	local y = y or 50
@@ -466,16 +575,21 @@ function _M:handleKeyboardInput()
 end
 
 --
-function _M:update(dt)	
+function _M:update(dt, gt)	
+	local camera = self._scene:camera()
+	local actor = self._hero:actor()
+	if camera and actor then
+		local x, y = actor:position()
+		camera:center(x, y)
+	end
+
 	self:handleKeyboardInput()
 	
-	local worldTime = self._worldTime
+	local worldTime = self:worldTime()
 	local gameDate = worldTime:date()
 	local garage = self._garage
 	local hero = self._hero
-	
-	local gt = worldTime:update(dt)	
-	
+		
 	garage:update(gt, dt)
 	hero:update(gt, dt)
 	
@@ -573,9 +687,9 @@ function _M:keyreleased(key)
 	
 	-- key presses that can be blocked by an overlay
 	if key == 's' then
-		self._worldTime:incrementRate(1)
+		self:worldTime():incrementRate(1)
 	elseif key == 'a' then
-		self._worldTime:incrementRate(-1)
+		self:worldTime():incrementRate(-1)
 	end
 
 	if key == '1' then
@@ -605,6 +719,12 @@ function _M:keyreleased(key)
 	end
 	
 	if key == '4' then
+		local actor = self._hero:actor()
+		local camera = self._scene:camera()
+		local x, y = camera:transform(actor:position())
+		x = x - 40
+		y = y - 150
+		
 		local v = self._hero:focusedVehicle()
 		if v then
 			local problem = v:currentProblem()
@@ -616,26 +736,26 @@ function _M:keyreleased(key)
 
 					v.onFinishDiagnosis = function(problem)	
 						self._hero:skillPointsInc(1)
-						self._worldTime:rate(3)				
+						self:worldTime():rate(3)				
 						self._hero:stopDiagnose()
 						problem:correctlyDiagnose()
-						self:popUpTextDialog('I think this vehicle has ' .. attempt:description().name)
-					end			
+						self:popUpTextDialog('I think this vehicle has ' .. attempt:description().name, x, y)
+					end												
 					
-					self:popUpTextDialog('A problem was found!')
+					self:popUpTextDialog('I found a problem!', x, y)
 				elseif not attempt:repair():isFinished() then
 					self._hero:startRepair()
 					
 					v.onFinishRepair = function(problem)	
 						self._hero:skillPointsInc(1)
-						self._worldTime:rate(3)	
+						self:worldTime():rate(3)	
 						self._hero:stopRepair()
 						self:popUpTextDialog('The problem with ' .. 
-							attempt:description().name .. ' has been fixed!')
+							attempt:description().name .. ' has been fixed!', x, y)
 					end			
 				end
 			else
-				self:popUpTextDialog('No more problems have been found!')
+				self:popUpTextDialog('I can\'t find any mmore problems!', x, y)
 			end
 		end
 	end
@@ -663,13 +783,8 @@ function _M:keyreleased(key)
 	end
 
 	if key == 'return' then
-		for _, v in pairs(self._scene._updateables) do
-			if v._CUSTOMER then
-				self:startTalkingCustomer(v)
-				break
-			end
-		end
-	end
+		self:attemptToTalk()
+	end	
 end
 
 return _M

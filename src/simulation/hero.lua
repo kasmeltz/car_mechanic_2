@@ -201,14 +201,14 @@ function _M:stopRepair()
 end
 
 --
-function _M:update(dt)	
+function _M:update(gt, dt)
 	if self._focusedVehicle then
 		if self._diagnosing == true then
-			self._focusedVehicle:updateDiagnosis(dt)
+			self._focusedVehicle:updateDiagnosis(gt)
 		end
 		
 		if self._repairing == true then
-			self._focusedVehicle:updateRepair(dt)
+			self._focusedVehicle:updateRepair(gt)
 		end
 	end
 end

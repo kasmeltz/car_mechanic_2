@@ -4,8 +4,8 @@ camera.lua
 January 16th, 2013	
 	
 ]]
-local setmetatable
-	= setmetatable
+local math, setmetatable
+	= math, setmetatable
 	
 module (...)
 
@@ -105,4 +105,12 @@ function _M:update()
 	self._zoomY = self._viewport[4] / self._window[4] 
 	self._cwzx = self._window[1] * self._zoomX
 	self._cwzy = self._window[2] * self._zoomY
+end
+
+--
+--
+--
+function _M:transform(x, y)
+	return math.floor((x * self._zoomX) - self._cwzx),
+		math.floor((y * self._zoomY) - self._cwzy)
 end

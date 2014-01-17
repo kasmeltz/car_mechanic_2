@@ -57,16 +57,19 @@ end
 --
 --  Update function
 --
-function Actor:update(dt)
-	self._latestDt = dt
+function Actor:update(dt, gt)
+	if (gt > 0.10) then
+		gt = 0.10 
+	end
+	self._latestDt = gt
 	
-	self._lastPosUpdate[1] = (dt * self._velocity[1])
-	self._lastPosUpdate[2] = (dt * self._velocity[2])
+	self._lastPosUpdate[1] = (gt * self._velocity[1])
+	self._lastPosUpdate[2] = (gt * self._velocity[2])
 	
 	self._position[1] = self._position[1] + self._lastPosUpdate[1]		
 	self._position[2] = self._position[2] + self._lastPosUpdate[2]
 	
-	Drawable.update(self, dt)	
+	Drawable.update(self, dt, gt)
 	self:calculateBoundary()
 end
 

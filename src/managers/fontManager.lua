@@ -18,7 +18,12 @@ function load(path, size)
 	if fonts[path .. size] then 
 		return fonts[path .. size]
 	end
+
+	if path == 'system' then
+		fonts[path .. size] = love.graphics.newFont(size)
+	else
+		fonts[path .. size] = love.graphics.newFont(path, size)
+	end
 	
-	fonts[path .. size] = love.graphics.newFont(path, size)
 	return fonts[path .. size] 
 end

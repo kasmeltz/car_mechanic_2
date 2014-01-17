@@ -64,7 +64,7 @@ function PathedActor:update(dt)
 		self._velocity[2] = 0
 		if dx and dy and dl then								
 			self._velocity[1] = self._speed * dx / dl
-			self._velocity[2] = self._speed* dy / dl
+			self._velocity[2] = self._speed * dy / dl
 		end
 		self._targetChanged = false
 	end		

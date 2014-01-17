@@ -6,8 +6,8 @@ January 9th, 2013
 ]]
 local love = love
 
-local setmetatable, pairs, ipairs, table, math
-	= setmetatable, pairs, ipairs, table, math
+local setmetatable, pairs, ipairs, table, math, print
+	= setmetatable, pairs, ipairs, table, math, print
 		
 module(...)
 
@@ -126,9 +126,14 @@ function _M:update(dt)
 		self:doRemove(v)
 		self._removals[k] = nil
 	end	
+	
+	local gt
+	if self._worldTime then
+		gt = self._worldTime:update(dt)	
+	end	
 			
 	for _, c in pairs(self._updateables) do
-		c:update(dt)	
+		c:update(dt, gt)	
 	end
 	for _, c in pairs(self._collidables) do
 		c:registerBuckets(self._buckets)

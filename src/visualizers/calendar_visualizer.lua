@@ -1,7 +1,6 @@
 local	table, pairs, ipairs, love, print =
 		table, pairs, ipairs, love, print 
 
-
 local class = require 'src/utility/class'
 local gameTime = require 'src/simulation/gametime'
 local visitResolver = require 'src/simulation/visit_resolver'

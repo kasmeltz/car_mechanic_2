@@ -1,8 +1,8 @@
 local 	ipairs, love = 
 		ipairs, love
 
-local overlay = require 'overlay'
-local class = require 'class'
+local overlay = require 'src/visualizers/overlay'
+local class = require 'src/utility/class'
 		
 module ('customerSkillVisualizer')
 	

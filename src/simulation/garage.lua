@@ -89,7 +89,7 @@ function _M:isOpen()
 end
 
 -- update the garage every game tick
-function _M:update(dt)		
+function _M:update(gt, dt)		
 end
 
 --

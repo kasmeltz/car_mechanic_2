@@ -1,14 +1,7 @@
 require 'loadSpriteSheets'
 
-require 'src/utility/table_ext'
-require 'src/utility/string_ext'
-
-local spriteSheetManager = require 'src/managers/spriteSheetManager'
 local sceneManager = require 'src/managers/gameSceneManager'
 local inputManager = require 'src/managers/gameInputManager'
-
-local gameScene = require 'src/entities/gameScene'
-local camera = require 'src/entities/camera'
 
 local customerFactory = require 'src/simulation/customer_factory'
 local vehicleFactory = require 'src/simulation/vehicle_factory'
@@ -30,50 +23,8 @@ function love.load()
 	portraitVisualizer.initialize()
 	dialogueFactory.initialize()
 		
-	local gs = gameScene:new()	
-	gs._orderedDraw = true
-	gs._showCollisionBoxes = true
-	
-	local c = camera:new()
-	gs:camera(c)	
-	
-	local sw = love.graphics:getWidth()
-	local sh = love.graphics:getHeight()
-	
-	c:viewport(0, 0, sw, sh)
-	c:window(0, 0, sw, sh)
-	c:center(sw / 2, sh / 2)
-	
-	local worldComponent = { _drawOrder = 100000 }
-	
-	function worldComponent:draw(camera)
-		self._world:draw()
-	end
-	
-	function worldComponent:update(dt)
-		self._world:update(dt)
-	end
-			
-	function gs:begin()
-		worldComponent._world = gameWorld:new()
-		worldComponent._world._scene = gs
-		worldComponent._world:startNew()
-	end	
-	
-	function gs:keypressed(key)
-		worldComponent._world:keypressed(key)		
-	end	
-	
-	function gs:keyreleased(key)
-		worldComponent._world:keyreleased(key)		
-	end	
-
-	gs:addComponent(worldComponent)
-	
-	sceneManager.removeScene('mainGame')
-	sceneManager.addScene('mainGame', gs)
-
-	sceneManager.switch('mainGame')
+	local gw = gameWorld:new()		
+	gw:startNew()
 end
 
 function love.update(dt)

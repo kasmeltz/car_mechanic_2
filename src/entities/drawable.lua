@@ -110,7 +110,7 @@ end
 --
 function Drawable:position(x, y)
 	if not x then
-		return self._position
+		return self._position[1], self._position[2]
 	end
 		
 	self._position[1] = x
@@ -143,7 +143,7 @@ end
 -- 
 --  Updates the Drawable
 --
-function Drawable:update(dt)
+function Drawable:update(dt, gt)
 	-- updates the draw order
 	self._drawOrder = self._position[2] + self._currentAnimation:offset()[2] - (self._position[1] * 1e-14)
 	
@@ -153,7 +153,7 @@ function Drawable:update(dt)
 			self._currentAnimation._currentFrame = 
 				self._synchronizer._currentAnimation._currentFrame
 		else	
-			self._currentAnimation:update(dt)
+			self._currentAnimation:update(gt)
 		end
 	end
 end
