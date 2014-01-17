@@ -450,7 +450,7 @@ return
 		options = 
 		{
 			{
-				line = function() return 'Hi ' .. hero:firstName() .. ', I\' here for my ' .. vehicle:vehicleType() .. '.' end,
+				line = function() return 'Hi ' .. hero:firstName() .. ', I\'m here for my ' .. vehicle:vehicleType() .. '.' end,
 				next = function() return 'hero_generate_invoice' end
 			}
 		},		

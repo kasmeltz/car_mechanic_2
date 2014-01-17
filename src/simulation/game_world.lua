@@ -171,12 +171,29 @@ end
 
 --
 function _M:arriveAppointment(apt)
-	apt:arrive(self._worldTime)
+	local this = self
 	
-		
+	apt:arrive(self._worldTime)
+			
 	local actor = Objects.Actor{ 
 		_spriteSheet = spriteSheetManager.sheet('male_body_light')
 	}	
+	
+	actor._CUSTOMER = true
+	actor._appointment = apt
+	
+	function actor:update(dt)
+		Objects.Actor.update(self, dt)		
+		
+		if self._position[1] < 10 then
+			self:velocity(0, 0)
+		end
+		
+		if self._position[2] > 900 then
+			this._scene:removeComponent(self)
+		end
+	end
+	
 	actor:direction('down')
 	actor:animation('walk')
 	actor:position(1000, 600)
@@ -184,7 +201,7 @@ function _M:arriveAppointment(apt)
 	actor:update(0)
 	self._scene:addComponent(actor)	
 	
-	self:startTalkingCustomer(apt)
+	self._worldTime:rate(3)	
 end
 
 --
@@ -223,7 +240,9 @@ function _M:debugApptDetails(msg, apt)
 end
 
 --
-function _M:startTalkingCustomer(apt)
+function _M:startTalkingCustomer(actor)
+	local apt = actor._appointment
+	
 	self:debugApptDetails('startTalkingCustomer', apt)
 	
 	local sw = love.graphics:getWidth()
@@ -271,12 +290,16 @@ function _M:startTalkingCustomer(apt)
 	
 	self._dialogueVisualizer.onClose = 
 		function()
-			self:stopTalkingCustomer(apt)
+			self:stopTalkingCustomer(actor)
 		end
 end
 
 --
-function _M:stopTalkingCustomer(apt)
+function _M:stopTalkingCustomer(actor)
+	local apt = actor._appointment
+	
+	actor:velocity(0, 100)
+	
 	self:debugApptDetails('stopTalkingCustomer', apt)
 				
 	apt:customer():isOnPremises(false)
@@ -637,6 +660,15 @@ function _M:keyreleased(key)
 	
 	if key == '8' then		
 		self:showHeroSkills()
+	end
+
+	if key == 'return' then
+		for _, v in pairs(self._scene._updateables) do
+			if v._CUSTOMER then
+				self:startTalkingCustomer(v)
+				break
+			end
+		end
 	end
 end
 
