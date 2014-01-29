@@ -8,6 +8,7 @@ local vehicleFactory = require 'src/simulation/vehicle_factory'
 local problemFactory = require 'src/simulation/problem_factory'
 local portraitVisualizer = require 'src/visualizers/portrait_visualizer'
 local dialogueFactory = require 'src/simulation/dialogue_factory'
+local storyFactory = require 'src/simulation/story_factory'
 local gameWorld = require 'src/simulation/game_world'
 
 -------------------------------------------------------------------------------
@@ -22,6 +23,7 @@ function love.load()
 	problemFactory.initialize()
 	portraitVisualizer.initialize()
 	dialogueFactory.initialize()
+	storyFactory.initialize()
 		
 	local gw = gameWorld:new()		
 	gw:startNew()

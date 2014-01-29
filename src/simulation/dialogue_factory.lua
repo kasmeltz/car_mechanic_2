@@ -32,8 +32,7 @@ function newCustomerDialogue(world, appointment)
 	}
 	setfenv(fn, context)
 	
-	local o = dialogue:new(fn())
-	
+	local o = dialogue:new(fn())		
 	return o
 end
 

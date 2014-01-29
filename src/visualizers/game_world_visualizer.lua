@@ -29,17 +29,23 @@ function _M:draw(dt)
 	local sw = love.graphics:getWidth()
 	local sh = love.graphics:getHeight()
 		
-	love.graphics.setFont(fontManager.load('fonts/ALGER.TTF', 36))
+	love.graphics.setFont(fontManager.load('fonts/ALGER.TTF', 24))
 
+	love.graphics.setColor(self:borderColor())
+	love.graphics.rectangle('fill', 0, 0, sw, 100)
+	love.graphics.setColor(self:backgroundColor())
+	love.graphics.rectangle('fill', 10, 10, sw - 20, 80)
+		
 	love.graphics.setColor(255, 255, 0, 255)
-	love.graphics.print(worldTime:tostring('%B %d, %Y'), 0, 0)
-	love.graphics.print(worldTime:tostring('%I:%M:%S %p'), 0, 36)
+	love.graphics.print(worldTime:tostring('%B %d, %Y'), 20, 10)
+	love.graphics.print(worldTime:tostring('%I:%M:%S %p'), 20, 30)
 
 	love.graphics.setColor(255, 255, 255, 255)
-	love.graphics.print(worldTime:rate().name, 400, 0)
+	love.graphics.print(worldTime:rate().name, 20, 50)
 
 	love.graphics.setFont(fontManager.load('system', 12))	
 	
+	--[[
 	love.graphics.print('$' .. garage:bankAccount(), 0, 72)	
 	
 	if holiday then
@@ -144,6 +150,7 @@ function _M:draw(dt)
 			sy = sy + 20
 		end
 	end
+	]]
 		
 	self:b_draw()
 end

@@ -1,0 +1,33 @@
+return 
+{
+	introduction = 
+	{		
+		condition = function() return world:introduction() end,
+		onEnd = function() world:introduction(false) end,
+		narrative = function() return 'Today is my 21st birthday and I\'ve decided to open a garage. My father was a mechanic, and my father\'s father was a mechanic and my father\'s father\'s father was a mechanic and my father\'s father\'s father\'s father was a ... goat herder. So I suppose it runs in the family?' end,
+		options = 
+		{
+			{
+				line = function() return 'I threw it on the ground!' end,
+				onChoose = function() 					
+					world:showFancyTitle('Opening Day')
+					world:messageAlert('And so it begins...') 
+				end,
+				next = function() return '' end
+			}
+		}		
+	},
+	got_wasted = 
+	{		
+		condition = function() return hero:karma() < 500 end,
+		onEnd = function() hero:karmaInc(-10) end,		
+		narrative = function() return 'I got so wasted last night!' end,
+		options = 
+		{
+			{
+				line = function() return 'I threw it on the ground!' end,
+				next = function() return '' end
+			}
+		}		
+	}
+}

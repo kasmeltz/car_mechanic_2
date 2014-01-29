@@ -33,10 +33,6 @@ function _M:advance(v)
 		onChoose()
 	end
 	
-	if self._currentDialogue and self._currentDialogue.onEnd then
-		self._currentDialogue.onEnd()
-	end
-	
 	local nextBranch = self._currentDialogue.options[v].next()
 		
 	self._currentDialogue = self._tree[nextBranch]

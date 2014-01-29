@@ -68,6 +68,8 @@ function _M:new()
 		1, 1, 1
 	}
 
+	o._karma = 300
+	
 	self.__index = self
 	return class.extend(o, self)
 end
@@ -85,6 +87,23 @@ function _M:skillPointsInc(v)
 	
 	if self.onSkillPointInc then	
 		self.onSkillPointInc(v, self._skillPoints)
+	end	
+end
+
+--
+function _M:karma(v)
+	if not v then
+		return self._karma 
+	end
+	self._karma = v
+end
+
+--
+function _M:karmaInc(v)
+	self._karma = self._karma + v
+	
+	if self.onKarmaInc then	
+		self.onKarmaInc(v, self._karma)
 	end	
 end
 

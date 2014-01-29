@@ -22,12 +22,14 @@ local invoice = require 'src/simulation/invoice'
 local gameTime = require 'src/simulation/gameTime'
 local garage = require 'src/simulation/garage'
 local dialogueFactory = require 'src/simulation/dialogue_factory'
+local storyFactory = require 'src/simulation/story_factory'
 
 local heroSkillVisualizer = require 'src/visualizers/hero_skill_visualizer'
 local heroSelectVisualizer = require 'src/visualizers/hero_select_visualizer'
 local titleVisualizer = require 'src/visualizers/title_visualizer'
 local portraitVisualizer = require 'src/visualizers/portrait_visualizer'
 local dialogueVisualizer = require 'src/visualizers/dialogue_visualizer'
+local storyVisualizer = require 'src/visualizers/story_visualizer'
 local customerSkillVisualizer = require 'src/visualizers/customer_skill_visualizer'
 local vehicleDetailVisualizer = require 'src/visualizers/vehicle_detail_visualizer'
 local gameWorldVisualizer = require 'src/visualizers/game_world_visualizer'
@@ -42,6 +44,7 @@ function _M:new()
 	local o = {}
 
 	self.__index = self
+	self._introduction = true
 	self._messageAlerts = {}
 	
 	return setmetatable(o, self)
@@ -53,6 +56,14 @@ end
 
 -- loads a game world from the specified root folder
 function _M:load(rootFolder)
+end
+
+--
+function _M:introduction(v)
+	if v == nil then
+		return self._introduction
+	end
+	self._introduction = v
 end
 
 --
@@ -155,6 +166,26 @@ function _M:initializeHero()
 	self._daysSchedule = self._scheduler:getNextDay(self._garage, self:worldTime())
 end
 
+--
+function _M:showFancyTitle(msg)
+	local sw = love.graphics:getWidth()
+	
+	local title = titleVisualizer:new('Opening Day', 5)
+	title:textColor { 255, 255, 0, 255 }
+	title:font(fontManager.load('fonts/ALGER.TTF', 72))
+	title:position(100, 50)	
+	title:size(sw - 200, 200)
+	title:borderColor(255, 255, 0, 255)
+	title:backgroundColor(10, 100, 10, 255)
+	
+	title.onClose = 
+		function()	
+			self._visualizer:removeOverlay(title)			
+		end		
+	self._visualizer:addOverlay(title)	
+end
+
+--
 function _M:heroSelect()
 	local mv = heroSelectVisualizer:new(self:worldTime())
 	local sw = love.graphics:getWidth()
@@ -168,21 +199,9 @@ function _M:heroSelect()
 		function()	
 			self._hero = mv:createdHero()
 			self._visualizer:removeOverlay(mv)	
-			self:initializeHero()
-				
-			local title = titleVisualizer:new('Opening Day', 5)
-			title:textColor { 255, 255, 0, 255 }
-			title:font(fontManager.load('fonts/ALGER.TTF', 72))
-			title:position(100, 50)	
-			title:size(sw - 200, 200)
-			title:borderColor(255, 255, 0, 255)
-			title:backgroundColor(10, 100, 10, 255)
+			self:initializeHero()			
 			
-			title.onClose = 
-				function()	
-					self._visualizer:removeOverlay(title)			
-				end		
-			self._visualizer:addOverlay(title)	
+			self:dailyStory()
 		end
 end
 
@@ -315,6 +334,45 @@ function _M:attemptToTalk()
 			end
 		end
 	end
+end
+
+--
+function _M:dailyStory()
+	local d = storyFactory.randomStory(self)
+	if not d:current() then return end
+	
+	local sw = love.graphics:getWidth()
+	local sh = love.graphics:getHeight()
+	
+	local heroPortrait = portraitVisualizer:new(self._hero, self:worldTime())
+	local pw, ph = heroPortrait:size()
+	heroPortrait:position((sw / 2) - (pw / 2), 50)		
+	
+	local dw = (sw - 100) / 2 - 50
+	
+	self:worldTime():rate(1)	
+
+	local sv = storyVisualizer:new(d)
+	
+	sv:borderColor(120,140,140,255)
+	sv:backgroundColor(20,40,40,255)
+	sv:position(30, 30)
+	sv:size(sw - 60, sh - 60)
+
+	sv:heroPosition((sw / 2) - (dw / 2), 50 + ph + 300)
+	sv:heroSize(dw, 125)
+	
+	self._visualizer:addOverlay(sv)	
+	self._visualizer:addOverlay(heroPortrait)		
+
+	self._heroPortrait = heroPortrait
+	self._storyVisualizer = sv
+	
+	self._storyVisualizer.onClose = 
+		function()
+			self._visualizer:removeOverlay(self._heroPortrait)
+			self._visualizer:removeOverlay(self._storyVisualizer)
+		end
 end
 
 --
@@ -507,7 +565,7 @@ end
 
 --
 function _M:showNextMessageAlert()
-	if #self._messageAlerts > 0 then	
+	if #self._messageAlerts > 0 and not self._messageOverlay then	
 		local msg = self._messageAlerts[1]
 		
 		local title = titleVisualizer:new(msg, 3.5)
@@ -518,10 +576,13 @@ function _M:showNextMessageAlert()
 		title:borderColor(255, 0, 0, 255)
 		title:backgroundColor(20, 10, 10, 255)
 		
+		self._messageOverlay = title
+		
 		title.onClose = 
 			function()					
 				table.removeObject(self._messageAlerts, msg)
 				self._visualizer:removeOverlay(title)	
+				self._messageOverlay = nil
 				self:showNextMessageAlert()
 			end		
 		self._visualizer:addOverlay(title)		
@@ -575,7 +636,7 @@ function _M:handleKeyboardInput()
 end
 
 --
-function _M:update(dt, gt)	
+function _M:update(dt, gt)		
 	local camera = self._scene:camera()
 	local actor = self._hero:actor()
 	if camera and actor then
@@ -608,8 +669,11 @@ function _M:update(dt, gt)
 	if worldTime:yearAdvanced() then
 	end
 	
-	if not garage:isOpen() and not self._holiday and gameDate.hour >= garage:openingHour() then
+	if not garage:isOpen() and not self._holiday and gameDate.hour >= garage:openingHour() and gameDate.hour < garage:closingHour() then
 		garage:openShop()
+		if not self:introduction() then
+			self:dailyStory()
+		end		
 	end
 	
 	if garage:isOpen() and not self._holiday and gameDate.hour >= garage:closingHour() then
