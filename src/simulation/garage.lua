@@ -117,6 +117,12 @@ function _M:parkingLot(v)
 end
 
 --
+function _M:isInParkingLot(v)
+	return table.contains(self._parkingSpots, v)
+end
+
+
+--
 function _M:parkVehicle(v)	
 	-- to do
 	-- what to do if you don't actually have space for the vehicle
@@ -150,6 +156,11 @@ end
 --
 function _M:workingBay(v)
 	return self._workingBays[v]
+end
+
+--
+function _M:isInWorkingBay(v)
+	return table.contains(self._workingBays, v)
 end
 
 return _M

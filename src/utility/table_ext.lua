@@ -325,4 +325,17 @@ function table.removeObject(t, o)
 	end
 end
 
+--
+--  Returns true if the table contains the supplied element 
+--	false otherwise
+--
+function table.contains(t, element)
+	for _, value in pairs(t) do
+		if value == element then
+			return true
+		end
+	end
+	return false
+end
+
 return table

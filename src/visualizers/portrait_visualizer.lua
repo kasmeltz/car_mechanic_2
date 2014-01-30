@@ -90,8 +90,8 @@ function _M:loadImages()
 			table.insert(self._images, 1, imageManager.load(path))
 			table.insert(imageNames, 1, fileName)
 		else
-			table.insert(self._images, imageManager.load(path))
-			table.insert(imageNames, fileName)
+			table.insert(self._images, #self._images, imageManager.load(path))
+			table.insert(imageNames, #imageNames, fileName)
 		end
 	end
 	
@@ -129,8 +129,8 @@ function _M:loadImages()
 	br[3] = maxX
 	br[4] = maxY
 	
-	self._size[1] = br[3] - br[1] + (self._borderWidth * 2)
-	self._size[2] = br[4] - br[2] + (self._borderWidth * 2)
+	self._size[1] = br[3] - br[1] + (self._borderWidth)
+	self._size[2] = br[4] - br[2] + (self._borderWidth)
 	
 	self._middleX = self._position[1] + (self._size[1] / 2)
 end
@@ -141,15 +141,15 @@ function _M:draw()
 
 	local name = self._customer:name()
 	local font = love.graphics.getFont()
-	local sx = self._position[1] + self._borderWidth
-	local sy = self._position[2] + self._borderWidth
+	local sx = self._position[1] + self._borderWidth / 2
+	local sy = self._position[2] + self._borderWidth / 2
 	for k, img in ipairs(self._images) do	
 		local offset = self._offsets[k]
 		love.graphics.draw(img, sx + offset[1], sy + offset[2])
 	end
 		
 	sx = self._position[1] + self._middleX - (font:getWidth(name) / 2)
-	sy = self._position[2] + self._size[2] + font:getHeight()
+	sy = self._position[2] + self._size[2] + (font:getHeight() / 3)
 	love.graphics.print(name, sx, sy)
 end
 

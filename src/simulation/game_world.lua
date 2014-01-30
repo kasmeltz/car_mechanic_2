@@ -255,14 +255,15 @@ function _M:arriveAppointment(apt)
 
 	apt:arrive(self:worldTime())
 	
-	local actor = Objects.Actor{ 
+	-- add the customer
+	local customerActor = Objects.Actor{ 
 		_spriteSheet = spriteSheetManager.sheet('male_body_light')
 	}	
 	
-	actor._CUSTOMER = true
-	actor._appointment = apt	
+	customerActor._CUSTOMER = true
+	customerActor._appointment = apt	
 	
-	function actor:update(dt, gt)
+	function customerActor:update(dt, gt)
 		Objects.Actor.update(self, dt, gt)
 		
 		if self._position[1] < 10 then
@@ -275,15 +276,35 @@ function _M:arriveAppointment(apt)
 		end
 	end
 	
-	actor:direction('down')
-	actor:animation('walk')
-	actor:position(1000, 600)
-	actor:velocity(-100, 0)
-	actor:update(0, 0)
-	self._scene:addComponent(actor)	
+	customerActor:direction('down')
+	customerActor:animation('walk')
+	customerActor:position(1000, 600)
+	customerActor:velocity(-100, 0)
+	customerActor:update(0, 0)
+	self._scene:addComponent(customerActor)
+
+	apt:customer():actor(customerActor)
+					
+	if not apt:customer():vehicle():isOnPremises() then		
+		-- add the vehicle
+		local vehicleActor = Objects.Actor{ 
+			_spriteSheet = spriteSheetManager.sheet('male_body_orc')
+		}	
+		
+		vehicleActor._VEHICLE = true
+		vehicleActor._appointment = apt	
+		
+		vehicleActor:direction('down')
+		vehicleActor:animation('walk')
+		vehicleActor:position(1000, 800)
+		vehicleActor:velocity(0, 0)
+		vehicleActor:update(0, 0)
+		self._scene:addComponent(vehicleActor)	
+		
+		apt:customer():vehicle():actor(vehicleActor)
+	end
 	
-	self:messageAlert(apt:customer():name() .. ' has arrived!')		
-			
+	self:messageAlert(apt:customer():name() .. ' has arrived!')	
 	self:worldTime():rate(3)	
 end
 
@@ -348,8 +369,6 @@ function _M:dailyStory()
 	local pw, ph = heroPortrait:size()
 	heroPortrait:position((sw / 2) - (pw / 2), 50)		
 	
-	local dw = (sw - 100) / 2 - 50
-	
 	self:worldTime():rate(1)	
 
 	local sv = storyVisualizer:new(d)
@@ -359,8 +378,8 @@ function _M:dailyStory()
 	sv:position(30, 30)
 	sv:size(sw - 60, sh - 60)
 
-	sv:heroPosition((sw / 2) - (dw / 2), 50 + ph + 300)
-	sv:heroSize(dw, 125)
+	sv:heroPosition((sw / 2) - 250, sh - 150)
+	sv:heroSize(500, 100)
 	
 	self._visualizer:addOverlay(sv)	
 	self._visualizer:addOverlay(heroPortrait)		
@@ -378,6 +397,7 @@ end
 --
 function _M:startTalkingCustomer(actor)
 	local apt = actor._appointment
+	actor:velocity(0, 0)
 	
 	self:debugApptDetails('startTalkingCustomer', apt)
 	
@@ -393,7 +413,7 @@ function _M:startTalkingCustomer(actor)
 	otherPortrait:position(sw - 50 - pw, 50)	
 	
 	local customerReading = customerSkillVisualizer:new(self._hero, apt:customer())
-	customerReading:position(sw - 50 - 300, 50 + ph + 50)
+	customerReading:position((sw / 2) - 100, 100)
 	
 	local dw = (sw - 100) / 2 - 50
 	
@@ -408,10 +428,10 @@ function _M:startTalkingCustomer(actor)
 	dialogueVisualizer:backgroundColor(20,40,40,255)
 	dialogueVisualizer:position(30, 30)
 	dialogueVisualizer:size(sw - 60, sh - 60)
-
-	dialogueVisualizer:heroPosition(50, 50 + ph + 300)
+	
+	dialogueVisualizer:heroPosition(50, sh - 175)
 	dialogueVisualizer:heroSize(dw, 125)
-	dialogueVisualizer:otherPosition(sw - 50 - dw, 50 + ph + 300)
+	dialogueVisualizer:otherPosition(sw - 50 - dw, sh - 175)
 	dialogueVisualizer:otherSize(dw, 125)
 	
 	self._visualizer:addOverlay(dialogueVisualizer)	
@@ -451,6 +471,11 @@ function _M:stopTalkingCustomer(actor)
 	self._dialogueVisualizer = nil	
 	
 	actor._hasBeenTalkedTo = true
+	
+	local vehicle = apt:customer():vehicle()	
+	if not vehicle:isOnPremises() then
+		self._scene:removeComponent(vehicle:actor())	
+	end
 end
 
 --
@@ -618,21 +643,25 @@ function _M:handleKeyboardInput()
 	local vx = 0
 	local vy = 0
 	local actor = self._hero:actor()
+	
 	if actor then
-		if inputManager.keyPressed['right'] then
-			vx = 50
-		end
-		if inputManager.keyPressed['left'] then
-			vx = -50
-		end
-		if inputManager.keyPressed['down'] then
-			vy = 50
-		end
-		if inputManager.keyPressed['up'] then
-			vy = -50
-		end
+		if not self._hero:focusedVehicle() then		
+			if inputManager.keyPressed['right'] then
+				vx = 100
+			end
+			if inputManager.keyPressed['left'] then
+				vx = -100
+			end
+			if inputManager.keyPressed['down'] then
+				vy = 100
+			end
+			if inputManager.keyPressed['up'] then
+				vy = -100
+			end
+		end		
+		
 		actor:velocity(vx, vy)
-	end		
+	end
 end
 
 --
@@ -761,6 +790,9 @@ function _M:keyreleased(key)
 		if v then
 			self._garage:unParkVehicle(v)
 			self._garage:enterBay(v)
+			
+			local a = v:actor()
+			a:position(400, 400)
 		end
 	end
 	
@@ -772,13 +804,30 @@ function _M:keyreleased(key)
 			end
 			self._garage:leaveBay(v)
 			self._garage:parkVehicle(v)
+			
+			local a = v:actor()
+			a:position(1000, 800)
 		end
 	end
 	
 	if key == '3' then
-		local v = self._garage:workingBay(1)
-		if v then
-			self._hero:focusedVehicle(v)
+		if self._hero:focusedVehicle() then
+			self._hero:unFocusVehicle()
+			return
+		end
+			
+		local actor = self._hero:actor()
+		if not actor then return end
+		for _, entity in pairs(self._scene._updateables) do
+			if entity._VEHICLE then				
+				if (actor:distanceFrom(entity) < 32) then
+					local v = entity._appointment:customer():vehicle()
+					if self._garage:isInWorkingBay(v) then
+						self._hero:focusedVehicle(v)
+						break
+					end
+				end
+			end
 		end
 	end
 	

@@ -104,13 +104,16 @@ function _M:scheduleDaysCustomers(garage, gt)
 	repeat 
 		-- to do figure out how this should work
 		-- use some formula based on garage's reputation		
-		local randomRange = 110000		
+		--local randomRange = 110000		
+		local randomRange = 120000		
 		-- busier times of day
 		if d.hour >= 7 and d.hour <= 9 then
-			randomRange = 60000
+			--randomRange = 60000
+			randomRange = 120000
 		end
 		if d.hour >= 11 and d.hour <= 13 then
-			randomRange = 60000
+			--randomRange = 60000
+			randomRange = 120000
 		end
 		local value = math.random(1, randomRange)
 		

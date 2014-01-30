@@ -1,17 +1,19 @@
-local	setmetatable, math =
-		setmetatable, math
+local	math =
+		math
+
+local class = require 'src/utility/class'
+local simulationItem = require 'src/simulation/simulation_item'
 		
 module('person')
 
 -- returns a new hero object
 function _M:new()
-	local o = {}
+	local o = simulationItem:new()
 	
-	o._face = { }	
-
-	self.__index = self
+	o._face = { }
 	
-	return setmetatable(o, self)
+	self.__index = self	
+	return class.extend(o, self)
 end
 
 --

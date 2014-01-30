@@ -32,10 +32,15 @@ function _M:draw(dt)
 	love.graphics.setFont(fontManager.load('fonts/ALGER.TTF', 24))
 
 	love.graphics.setColor(self:borderColor())
-	love.graphics.rectangle('fill', 0, 0, sw, 100)
+	love.graphics.rectangle('fill', 0, 0, 300, 100)
 	love.graphics.setColor(self:backgroundColor())
-	love.graphics.rectangle('fill', 10, 10, sw - 20, 80)
-		
+	love.graphics.rectangle('fill', 10, 10, 280, 80)
+
+	love.graphics.setColor(self:borderColor())
+	love.graphics.rectangle('fill', 0, 100, 300, sh - 100)
+	love.graphics.setColor(self:backgroundColor())
+	love.graphics.rectangle('fill', 10, 110, 280, sh - 120)
+
 	love.graphics.setColor(255, 255, 0, 255)
 	love.graphics.print(worldTime:tostring('%B %d, %Y'), 20, 10)
 	love.graphics.print(worldTime:tostring('%I:%M:%S %p'), 20, 30)
@@ -43,11 +48,12 @@ function _M:draw(dt)
 	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.print(worldTime:rate().name, 20, 50)
 
+	love.graphics.print('$' .. garage:bankAccount(), 15, sh - 100)	
+	
 	love.graphics.setFont(fontManager.load('system', 12))	
+
 	
-	--[[
-	love.graphics.print('$' .. garage:bankAccount(), 0, 72)	
-	
+	--[[	
 	if holiday then
 		love.graphics.print('Closed for ' .. holiday.name, 300, 300)
 	end	
@@ -85,22 +91,28 @@ function _M:draw(dt)
 			v:kms() .. ' kms -> Due by: ' .. a:latestVisit():scheduledTime():tostring(), 0, sy)	
 		sy = sy + 20
 	end
-		
+	--]]
+	
 	local v = world:hero():focusedVehicle()
 	if v then
 		local c = v:customer()
 		local a = c:appointment()
 		local p = v:currentProblem()
 		
+		sy = 115
+		sx = 15
+		love.graphics.print('=== CURRENTLY WORKING ON ===', sx, sy)
 		sy = sy + 20
-		love.graphics.print('=== CURRENTLY WORKING ON ===', 0, sy)
-		sy = sy + 20
-		love.graphics.print(c:name() .. '->' .. v:year() .. ' ' .. 
+		love.graphics.print(v:year() .. ' ' .. 
 			v:vehicleType() .. ' ' .. 
-			v:kms() .. ' kms -> Due by: ' .. a:latestVisit():scheduledTime():tostring(), 0, sy)	
+			v:kms() .. ' kms', sx, sy)
+		sy = sy + 20
+		love.graphics.print(c:name(), sx, sy)
+		sy = sy + 20
+		love.graphics.print('Due by: ' .. a:latestVisit():scheduledTime():tostring(), sx, sy)	
 		sy = sy + 20
 		
-		love.graphics.print('Number of problems: ' .. #v:problems(), 0, sy)	
+		love.graphics.print('Number of problems: ' .. #v:problems(), sx, sy)	
 		
 		sy = sy + 20		
 
@@ -110,27 +122,28 @@ function _M:draw(dt)
 			local r = a:repair()
 			local de = a:description()
 
-			love.graphics.print('Diagnosis progress: ' .. d:progress(), 0, sy)
+			love.graphics.print('Diagnosis progress: ' .. d:progress(), sx, sy)
 			
 			sy = sy + 20
 			
-			love.graphics.print('Repair progress: ' .. r:progress(), 0, sy)				
+			love.graphics.print('Repair progress: ' .. r:progress(), sx, sy)				
 			
 			sy = sy + 20
 			
 			if de then
-				love.graphics.print('Suspected problem: ' .. de.name, 0, sy)			
+				love.graphics.print('Suspected problem: ' .. de.name, sx, sy)			
 				sy = sy + 20			
 
-				love.graphics.print('Problem has been correctly diagnosed: ' .. tostring(p:isCorrectlyDiagnosed()), 0, sy)			
+				love.graphics.print('Problem has been correctly diagnosed: ' .. tostring(p:isCorrectlyDiagnosed()), sx, sy)			
 				sy = sy + 20			
 				
-				love.graphics.print('Problem has been correctly repaired: ' .. tostring(p:isCorrectlyRepaired()), 0, sy)			
+				love.graphics.print('Problem has been correctly repaired: ' .. tostring(p:isCorrectlyRepaired()), sx, sy)			
 				sy = sy + 20			
 			end
 		end
 	end
-				
+	
+	--[[		
 	local daysSchedule = world:daysSchedule()
 	
 	if daysSchedule then

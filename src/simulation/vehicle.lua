@@ -1,20 +1,22 @@
-local 	setmetatable, math, ipairs, print =
-		setmetatable, math, ipairs, print
+local 	math, ipairs, print =
+		math, ipairs, print
+		
+local class = require 'src/utility/class'		
+local simulationItem = require 'src/simulation/simulation_item'
 		
 module('vehicle')
 
 -- returns a new customer object
 function _M:new(c)
-	local o = {}
+	local o = simulationItem:new()
 
 	o._customer = c	
 	c:vehicle(o)
 	
 	o._problems = {}
 	
-	self.__index = self
-	
-	return setmetatable(o, self)
+	self.__index = self	
+	return class.extend(o, self)
 end
 
 --

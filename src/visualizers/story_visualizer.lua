@@ -69,7 +69,7 @@ function _M:draw()
 	love.graphics.setColor(255, 255, 255, 255)		
 	
 	local sx = self._position[1] + 50
-	local sy = self._position[2] + 250
+	local sy = self._position[2] + 300
 	if self._narrative then
 		love.graphics.printf( self._narrative, sx, sy, self._size[1] - 100, 'left' )	
 	end
@@ -95,6 +95,7 @@ function _M:draw()
 	end
 	
 	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.setFont(fontManager.load('system', 12))
 end
 
 --

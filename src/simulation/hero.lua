@@ -232,10 +232,4 @@ function _M:update(gt, dt)
 	end
 end
 
---
-function _M:actor(v)
-	if not v then return self._actor end
-	self._actor = v
-end
-
 return _M

@@ -4,7 +4,9 @@ return
 	{		
 		condition = function() return world:introduction() end,
 		onEnd = function() world:introduction(false) end,
-		narrative = function() return 'Today is my 21st birthday and I\'ve decided to open a garage. My father was a mechanic, and my father\'s father was a mechanic and my father\'s father\'s father was a mechanic and my father\'s father\'s father\'s father was a ... goat herder. So I suppose it runs in the family?' end,
+		narrative = function() 
+			return 'Today is my 21st birthday and I\'ve decided to open a garage. My father was a mechanic, and my father\'s father was a mechanic and my father\'s father\'s father was a mechanic and my father\'s father\'s father\'s father was a ... goat herder. So I suppose it runs in the family?'			
+		end,
 		options = 
 		{
 			{
